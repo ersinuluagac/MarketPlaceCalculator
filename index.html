@@ -1,90 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MP Calculator</title>
-  <style>
-    table,
-    th,
-    td {
-      border: 1px solid;
-      text-align: center;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bootstrap demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 
 <body>
-  <table>
-    <tr>
-      <td>Satış Fiyatı</td>
-      <td>Ürün Maaliyeti</td>
-      <td>KDV Oranı</td>
-      <td>Toplam Ürün Maaliyeti</td>
-    </tr>
-    <tr>
-      <td>299</td>
-      <td>50</td>
-      <td>20</td>
-      <td>60</td>
-    </tr>
-    <tr>
-      <td>Kargo</td>
-      <td>Desi</td>
-      <td>Kargo Kriteri</td>
-      <td>KDV Dahil Kargo Fiyatı</td>
-    </tr>
-    <tr>
-      <td>TEX</td>
-      <td>7</td>
-      <td>Barem</td>
-      <td>84</td>
-    </tr>
-    <tr>
-      <td>Trendyol Komisyon Oranı</td>
-      <td>KDV Dahil Komisyon Tutarı</td>
-      <td>Trendyol Hizmet Bedeli</td>
-      <td>Hesaba Yatacak Tutar</td>
-    </tr>
-    <tr>
-      <td>20</td>
-      <td>60</td>
-      <td>13</td>
-      <td>202</td>
-    </tr>
-    <tr>
-      <td>Ürün Alış KDV</td>
-      <td>Kargo KDV</td>
-      <td>Komisyon KDV</td>
-      <td>Hizmet Bedel KDV</td>
-    </tr>
-    <tr>
-      <td>15</td>
-      <td>12</td>
-      <td>19</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <td colspan="2">Satış KDV</td>
-      <td colspan="2">Toplam KDV</td>
-    </tr>
-    <tr>
-      <td colspan="2">55</td>
-      <td colspan="2">6</td>
-    </tr>
-    <tr>
-      <td colspan="2">Toplam Kâr</td>
-      <td>Kâr Oranı</td>
-      <td>KDV Hariç Kâr</td>
-    </tr>
-    <tr>
-      <td colspan="2">78</td>
-      <td>%24</td>
-      <td>98</td>
-    </tr>
-  </table>
-  <script type="module" src="app.js"></script>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-8">
+        <div class="row text-center">
+          <h1>E-Ticaret Kâr Hesaplayıcı</h1>
+
+          <form id="calculatorForm">
+            <div class="row mt-5">
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text" id="visible-addon"><i class="bi bi-tag"></i></span>
+                  <input type="number" step="0.1" class="form-control" id="salePrice" placeholder="Satış fiyatı"
+                    required>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text" id="visible-addon"><i class="bi bi-percent"></i></span>
+                  <input type="number" step="0.1" class="form-control" id="commission" placeholder="Komisyon oranı"
+                    required>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text" id="visible-addon"><i class="bi bi-upc-scan"></i></span>
+                  <input type="number" step="0.1" class="form-control" id="cost" placeholder="Ürün Maliyeti (KDV Hariç)"
+                    required>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text" id="visible-addon"><i class="bi bi-percent"></i></span>
+                  <select class="form-select" id="vatRate" required>
+                    <option selected disabled>KDV Oranı</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-6">
+                <select class="form-select" id="shippingCompany" required>
+                  <option selected disabled>Kargo firması</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text" id="visible-addon"><i class="bi bi-box-seam"></i></span>
+                  <input type="number" class="form-control" id="desi" placeholder="Desi (0-30)" min="0" max="30"
+                    required>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-6">
+                <input type="submit" class="btn btn-success w-100" placeholder="Hesapla">
+              </div>
+              <div class="col-6">
+                <button class="btn btn-outline-danger w-100">Temizle</button>
+              </div>
+            </div>
+        </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+  </div>
+  <!-- Script Area -->
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
