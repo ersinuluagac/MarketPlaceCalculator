@@ -1,43 +1,58 @@
 import { cargoData } from "./cargo.js";
 
 const cargoCompanies = cargoData.companies;
+const { consts } = cargoData;
 
 // Ekrandaki ID'ler
-let calculatorForm = document.querySelector("#calculatorForm")
-let salePrice = document.querySelector("#salePrice");
-let commission = document.querySelector("#commission");
-let cost = document.querySelector("#cost");
-let vatRate = document.querySelector("#vatRate");
-let shippingCompany = document.querySelector("#shippingCompany");
-let desi = document.querySelector("#desi");
-let clear = document.querySelector("#clear");
-let calculate = document.querySelector("#calculate");
+const calculatorForm = document.querySelector("#calculatorForm");
+const resultArea = document.querySelector("#result");
+const shippingCompanySelect = document.querySelector("#shippingCompany");
+const calculateBtn = document.querySelector("#calculate");
 
 // Kargo firma seçeneği ekleme
 document.addEventListener("DOMContentLoaded", () => {
-  const selectElement = shippingCompany;
-  Object.keys(cargoCompanies).forEach((key) => {
-    const company = cargoCompanies[key];
-    const option = document.createElement("option");
-    option.value = key;
-    option.textContent = company.name;
-    selectElement.appendChild(option);
+  const selectElement = shippingCompanySelect;
+  Object.entries(cargoCompanies).forEach(([key, company]) => {
+    const option = new Option(company.name, key);
+    shippingCompanySelect.appendChild(option);
   });
 });
 
 // Temizle butonu
-clear.addEventListener("click", () => {
+document.querySelector("#clear").addEventListener("click", () => {
   calculatorForm.reset();
+  resultArea.innerHTML = "";
 });
 
 // Submit butonu
-calculate.addEventListener("click", () => {
-  let entrySalePrice = salePrice.value;
-  let entryCommision = commission.value;
-  let selectedCargo = shippingCompany.value;
-  let selectedDesi = desi.value;
-  let productCost = cost.value;
-  let entryVatRate = vatRate.value;
-  console.log(`Satış Fiyatı: ${entrySalePrice} | Trendyol Komisyonu: ${entryCommision} | Seçilan Kargo Şirket: ${cargoCompanies[selectedCargo].name} | Kargo Desisi: ${selectedDesi} | Ürün Maaliyeti: ${productCost} | Ürün KDV'si: ${entryVatRate}`)
-});
+calculateBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  // Değerleri alma
+  const formData = new FormData(calculatorForm);
+  const data = Object.fromEntries(formData.entries());
 
+  // Dönüşümler
+  const sPrice = parseFloat(data.salePrice);
+  const commRate = parseFloat(data.commission);
+  const pCost = parseFloat(data.cost);
+  const vRate = parseFloat(data.vatRate);
+  const productPrice = pCost + pCost * (vRate / 100);
+  const dValue = parseInt(data.desi);
+  const selectedKey = data.shippingCompany;
+  const company = cargoCompanies[selectedKey];
+  const cargoPrice = company.prices[dValue] * consts.taxMultiplier;
+
+  console.log(
+    `Satış Fiyatı: ${sPrice} | Trendyol Komisyonu: ${commRate} | Seçilan Kargo Şirket: ${company.name} | Kargo Desisi: ${dValue} | Ürün Maaliyeti: ${pCost} | Ürün KDV'si: ${vRate}`,
+  );
+
+  // Vergiler
+  const saleTax = sPrice - sPrice / (1 + vRate / 100);
+  const cargoTax = cargoPrice - cargoPrice / consts.taxMultiplier;
+  const productTax = productPrice - productPrice / (1 + vRate / 100);
+  console.log(`Yeni: ${productTax}`);
+
+  // Hesaplama
+
+  // Sonuçları ekrana basma
+});
