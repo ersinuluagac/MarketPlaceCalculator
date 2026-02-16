@@ -15,7 +15,7 @@ let calculate = document.querySelector("#calculate");
 
 // Kargo firma seçeneği ekleme
 document.addEventListener("DOMContentLoaded", () => {
-  const selectElement = document.getElementById("shippingCompany");
+  const selectElement = shippingCompany;
   Object.keys(cargoCompanies).forEach((key) => {
     const company = cargoCompanies[key];
     const option = document.createElement("option");
@@ -40,3 +40,4 @@ calculate.addEventListener("click", () => {
   let entryVatRate = vatRate.value;
   console.log(`Satış Fiyatı: ${entrySalePrice} | Trendyol Komisyonu: ${entryCommision} | Seçilan Kargo Şirket: ${cargoCompanies[selectedCargo].name} | Kargo Desisi: ${selectedDesi} | Ürün Maaliyeti: ${productCost} | Ürün KDV'si: ${entryVatRate}`)
 });
+
