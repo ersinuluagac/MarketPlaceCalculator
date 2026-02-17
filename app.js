@@ -1,3 +1,7 @@
+/*
+  Yuvarlama işlemleri için: toFixed(2)
+*/
+
 import { cargoData } from "./cargo.js";
 
 const cargoCompanies = cargoData.companies;
@@ -40,7 +44,10 @@ calculateBtn.addEventListener("click", (e) => {
   const dValue = parseInt(data.desi);
   const selectedKey = data.shippingCompany;
   const company = cargoCompanies[selectedKey];
+
+  const commCost = sPrice * (commRate / 100);
   const cargoPrice = company.prices[dValue] * consts.taxMultiplier;
+  const transactionCost = consts.transactionFeeNormal * consts.taxMultiplier;
 
   console.log(
     `Satış Fiyatı: ${sPrice} | Trendyol Komisyonu: ${commRate} | Seçilan Kargo Şirket: ${company.name} | Kargo Desisi: ${dValue} | Ürün Maaliyeti: ${pCost} | Ürün KDV'si: ${vRate}`,
@@ -50,7 +57,9 @@ calculateBtn.addEventListener("click", (e) => {
   const saleTax = sPrice - sPrice / (1 + vRate / 100);
   const cargoTax = cargoPrice - cargoPrice / consts.taxMultiplier;
   const productTax = productPrice - productPrice / (1 + vRate / 100);
-  console.log(`Yeni: ${productTax}`);
+  const commisionTax = commCost - commCost / consts.taxMultiplier;
+  const transactionTax = transactionCost - transactionCost / consts.taxMultiplier;
+  console.log(`Vergi: ${saleTax - cargoTax - productTax - commisionTax - transactionTax}`)
 
   // Hesaplama
 
