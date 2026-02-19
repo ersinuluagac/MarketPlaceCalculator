@@ -9,7 +9,6 @@ const shippingCompanySelect = document.querySelector("#shippingCompany");
 
 // Kargo firma seçeneklerini ekleme
 document.addEventListener("DOMContentLoaded", () => {
-  const selectElement = shippingCompanySelect;
   Object.entries(cargoCompanies).forEach(([key, cargoCompany]) => {
     const option = new Option(cargoCompany.name, key);
     shippingCompanySelect.appendChild(option);
@@ -21,33 +20,67 @@ document.querySelector("#clear").addEventListener("click", () => {
   calculatorForm.reset();
 });
 
-// Hesapla butonu
-document.querySelector("#calculate").addEventListener("click", () => {
-  // Değerleri alma
-  const formData = new FormData(calculatorForm);
+// Form Data için Fonksiyonu
+function getFormValues(form) {
+  const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  const salePrice = Number(data.salePrice);
+  // Form Verileri
+  const salePriceWithVat = Number(data.salePrice);
   const commissionRate = Number(data.commission);
-  const productCost = Number(data.cost);
+  const productCostExVat = Number(data.cost);
   const vatRate = Number(data.vatRate);
   const volumetricWeight = Number(data.volWeight);
   const selectedKey = data.shippingCompany;
   const cargoCompany = cargoCompanies[selectedKey];
+  // KDV'siz değerler
+  const salePriceExVat = salePriceWithVat / (1 + vatRate / 100);
+  const commissionCostExVat = (salePriceWithVat * (commissionRate / 100)) / consts.taxMultiplier;
+  const cargoCostExVat = (cargoCompany.prices[volumetricWeight]);
+  const transactionCostExVat = consts.transactionFeeNormal;
+  // KDV'li değerler
+  const productCostWithVat = productCostExVat + (productCostExVat * vatRate / 100);
+  const commissionCostWithVat = (salePriceWithVat * (commissionRate / 100));
+  const cargoCostWithVat = cargoCostExVat * consts.taxMultiplier;
+  const transactionCostWithVat = transactionCostExVat * consts.taxMultiplier;
 
-  const salePriceExVat = salePrice / (1 + vatRate / 100);
-  const commissionCostExVat = (salePrice * (commissionRate / 100)) / consts.taxMultiplier;
+  return {
+    // Değerler
+    commissionRate,
+    vatRate,
+    volumetricWeight,
+    selectedKey,
+    cargoCompany,
+    // Fiyatlar
+    salePriceWithVat,
+    salePriceExVat,
+    productCostWithVat,
+    productCostExVat,
+    commissionCostWithVat,
+    commissionCostExVat,
+    cargoCostExVat,
+    cargoCostWithVat,
+    transactionCostExVat,
+    transactionCostWithVat
+  };
+}
+
+// Hesapla butonu
+document.querySelector("#calculate").addEventListener("click", (e) => {
+  e.preventDefault();
+
+  const allData = getFormValues(calculatorForm);
 
   // Hesaplama
-  console.log(`Net Kâr: ${(salePriceExVat - commissionCostExVat - productCost - cargoCompany.prices[volumetricWeight] - consts.transactionFeeNormal).toFixed(2)}`);
+  const netProfit = (
+    allData.salePriceExVat -
+    allData.commissionCostExVat -
+    allData.productCostExVat -
+    allData.cargoCostExVat -
+    allData.transactionCostExVat
+  ).toFixed(2);
+  console.log(`Net Kâr: ${netProfit}`);
 
-
-  // Refactor edilecek
-  const productPrice = productCost + productCost * (vatRate / 100);
-  const commissionCost = salePrice * (commissionRate / 100);
-  const cargoPrice =
-    cargoCompany.prices[volumetricWeight] * consts.taxMultiplier;
-  const transactionCost = consts.transactionFeeNormal * consts.taxMultiplier;
 
   // Vergiler
   const saleTax = salePrice - salePrice / (1 + vatRate / 100);
@@ -58,16 +91,6 @@ document.querySelector("#calculate").addEventListener("click", () => {
     transactionCost - transactionCost / consts.taxMultiplier;
   const totalTax =
     saleTax - (cargoTax + productTax + commisionTax + transactionTax);
-
-  const result =
-    salePrice -
-    totalTax -
-    productPrice -
-    cargoPrice -
-    commissionCost -
-    transactionCost;
-
-  // Hesaplama
 
   // Sonuçları ekrana basma
 });
