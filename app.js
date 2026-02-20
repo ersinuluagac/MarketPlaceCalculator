@@ -35,12 +35,14 @@ function getFormValues(form) {
   const cargoCompany = cargoCompanies[selectedKey];
   // KDV'siz değerler
   const salePriceExVat = salePriceWithVat / (1 + vatRate / 100);
-  const commissionCostExVat = (salePriceWithVat * (commissionRate / 100)) / consts.taxMultiplier;
-  const cargoCostExVat = (cargoCompany.prices[volumetricWeight]);
+  const commissionCostExVat =
+    (salePriceWithVat * (commissionRate / 100)) / consts.taxMultiplier;
+  const cargoCostExVat = cargoCompany.prices[volumetricWeight];
   const transactionCostExVat = consts.transactionFeeNormal;
   // KDV'li değerler
-  const productCostWithVat = productCostExVat + (productCostExVat * vatRate / 100);
-  const commissionCostWithVat = (salePriceWithVat * (commissionRate / 100));
+  const productCostWithVat =
+    productCostExVat + (productCostExVat * vatRate) / 100;
+  const commissionCostWithVat = salePriceWithVat * (commissionRate / 100);
   const cargoCostWithVat = cargoCostExVat * consts.taxMultiplier;
   const transactionCostWithVat = transactionCostExVat * consts.taxMultiplier;
 
@@ -58,11 +60,21 @@ function getFormValues(form) {
     productCostExVat,
     commissionCostWithVat,
     commissionCostExVat,
-    cargoCostExVat,
     cargoCostWithVat,
+    cargoCostExVat,
+    transactionCostWithVat,
     transactionCostExVat,
-    transactionCostWithVat
   };
+}
+
+// DOM Manipülasyonu
+function showResult(data) {
+  const htmlTemplate = `
+    <div>
+       ${data.netProfit}
+    </div>
+  `;
+  resultArea.innerHTML = htmlTemplate;
 }
 
 // Hesapla butonu
@@ -71,7 +83,7 @@ document.querySelector("#calculate").addEventListener("click", (e) => {
 
   const allData = getFormValues(calculatorForm);
 
-  // Hesaplama
+  // Kâr Hesaplama
   const netProfit = (
     allData.salePriceExVat -
     allData.commissionCostExVat -
@@ -79,18 +91,24 @@ document.querySelector("#calculate").addEventListener("click", (e) => {
     allData.cargoCostExVat -
     allData.transactionCostExVat
   ).toFixed(2);
-  console.log(`Net Kâr: ${netProfit}`);
 
-
-  // Vergiler
-  const saleTax = salePrice - salePrice / (1 + vatRate / 100);
-  const cargoTax = cargoPrice - cargoPrice / consts.taxMultiplier;
-  const productTax = productPrice - productPrice / (1 + vatRate / 100);
-  const commisionTax = commissionCost - commissionCost / consts.taxMultiplier;
+  // Vergi Hesaplama
+  const saleTax = allData.salePriceWithVat - allData.salePriceWithVat / (1 + allData.vatRate / 100);
+  const cargoTax = allData.cargoCostWithVat - allData.cargoCostWithVat / consts.taxMultiplier;
+  const productTax =
+    allData.productCostWithVat - allData.productCostWithVat / (1 + allData.vatRate / 100);
+  const commisionTax =
+    allData.cargoCostWithVat - allData.cargoCostWithVat / consts.taxMultiplier;
   const transactionTax =
-    transactionCost - transactionCost / consts.taxMultiplier;
+    allData.transactionCostWithVat - allData.transactionCostWithVat / consts.taxMultiplier;
   const totalTax =
-    saleTax - (cargoTax + productTax + commisionTax + transactionTax);
+    saleTax -
+    (cargoTax + productTax + commisionTax + transactionTax).toFixed(2);
 
   // Sonuçları ekrana basma
+  showResult({
+    allData: allData,
+    netProfit: netProfit,
+    totalTax: totalTax,
+  });
 });
