@@ -1,19 +1,41 @@
-export const cargoData = {
-  // Vergi ve Sabitler
-  consts: {
+export function getFormValues(form){
+  // JSON formatına uygun şablon oluştur
+  const formData = new FormData(form);
+  const allForm = Object.fromEntries(formData.entries());
+
+  // Form Verileri
+  const salePrice = Number(allForm.salePrice);
+  const commissionRate = Number(allForm.commissionRate);
+  const productCost = Number(allForm.productCost);
+  const productVatRate = Number(allForm.productVatRate);
+  const selectedCargoKey = allForm.shippingCompany;
+  const shippingCompany = consts.companies[selectedCargoKey];
+  const volumetricWeight = Number(allForm.volumetricWeight);
+  const returnRate = Number(allForm.returnRate);
+  const packagingCost = Number(allForm.packagingCost);
+
+  return{
+    salePrice, commissionRate, productCost, productVatRate, shippingCompany, volumetricWeight, returnRate, packagingCost
+  }
+}
+
+// Sabitler
+export const consts = {
+  // Vergi ve İşlem
+  taxAndTransaction: {
     taxMultiplier: 1.20,
-    taxRate: 20,
-    transactionFeeNormal: 10.99,
-    transactionFeeFast: 6.99,
+    transactionFeeTierFast: 6.99,
+    transactionFeeTierNormal: 10.99,
   },
   // Firmalar ve Fiyatlar
   /*
-    Not: Desi bilgisi ve index
+    Not: Desi bilgisi ve index eşittir.
   */
   companies: {
     tex: {
       name: "Trendyol Express",
-      barem: [34.16, 65.83],
+      shippingTierFast: [34.16, 65.83],
+      shippingTierNormal: [64.58, 72.91],
       prices: [
         77.54,
         77.54, 77.54, 93.63, 101.46, 107.98, 118.30, 125.66, 134.21, 142.42, 153.47,
@@ -23,7 +45,8 @@ export const cargoData = {
     },
     aras: {
       name: "Aras Kargo",
-      barem: [42.91, 73.74],
+      shippingTierFast: [42.91, 73.74],
+      shippingTierNormal: [71.66, 79.99],
       prices: [
         83.93,
         83.93, 83.93, 95.12, 103.68, 111.17, 121.12, 128.46, 137.05, 144.91, 153.48,
@@ -33,7 +56,8 @@ export const cargoData = {
     },
     ptt: {
       name: "PTT",
-      barem: [34.16, 65.83],
+      shippingTierFast: [34.16, 65.83],
+      shippingTierNormal: [64.58, 72.91],
       prices: [
         77.54,
         77.54, 77.54, 96.00, 96.00, 100.55, 106.83, 113.15, 125.73, 138.34, 157.26,
@@ -43,7 +67,8 @@ export const cargoData = {
     },
     surat: {
       name: "Sürat Kargo",
-      barem: [48.74, 79.58],
+      shippingTierFast: [48.74, 79.58],
+      shippingTierNormal: [77.49, 85.83],
       prices: [
         89.71,
         89.71, 89.71, 99.96, 109.30, 114.94, 126.28, 134.85, 143.29, 151.87, 160.43,
@@ -53,7 +78,8 @@ export const cargoData = {
     },
     dhl: {
       name: "DHL eCommerce",
-      barem: [52.08, 82.91],
+      shippingTierFast: [52.08, 82.91],
+      shippingTierNormal: [80.83, 89.16],
       prices: [
         92.99,
         92.99, 92.99, 103.99, 116.99, 129.99, 141.99, 149.99, 159.99, 169.99, 176.99,
@@ -63,7 +89,8 @@ export const cargoData = {
     },
     yurtici: {
       name: "Yurtiçi Kargo",
-      barem: [74.58, 104.58],
+      shippingTierFast: [74.58, 104.58],
+      shippingTierNormal: [101.24, 109.58],
       prices: [
         112.77,
         112.77, 112.77, 120.56, 123.15, 142.91, 149.82, 169.44, 175.96, 186.86, 195.12,
@@ -73,7 +100,8 @@ export const cargoData = {
     },
     kolaygelsin: {
       name: "Kolay Gelsin",
-      barem: [51.24, 82.08],
+      shippingTierFast: [51.24, 82.08],
+      shippingTierNormal: [79.58, 87.91],
       prices: [
         91.99,
         91.99, 91.99, 101.99, 112.99, 121.99, 131.99, 140.99, 150.99, 159.99, 170.99,
