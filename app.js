@@ -1,5 +1,8 @@
 import { getFormValues, consts } from "./data.js";
+import * as calculator from "./calculator.js";
 const cargoCompanies = consts.companies;
+
+const values = getFormValues();
 
 // Ekrandaki ID'ler
 const calculatorForm = document.querySelector("#calculatorForm");
@@ -19,6 +22,21 @@ document.querySelector("#clear").addEventListener("click", () => {
   calculatorForm.reset();
 });
 
-// DOM Manipülasyonu
-console.log(getFormValues(calculatorForm).shippingCompany)
+// DOM İşlemleri
+document.querySelector("#calculate").addEventListener("click", (e) => {
+  e.preventDefault();
+  const values = getFormValues(calculatorForm);
 
+  const normalCalculated = calculator.calculateNormalTierNetProfit(
+    values.salePrice,
+    values.commissionRate,
+    values.productCost,
+    values.productVatRate,
+    values.shippingCompany,
+    values.volumetricWeight,
+    consts.taxAndTransaction,
+  );
+  console.log(
+    normalCalculated.totalVat
+  );
+});
