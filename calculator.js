@@ -7,6 +7,7 @@ export function calculateNormalTierNetProfit(
   volumetricWeight,
   consts,
 ) {
+  // Cost
   const fullCommissionCost = salePrice * (commissionRate / 100);
   const fullProductCost = productCost * productVatRate;
   const fullShippingCost =
@@ -17,17 +18,35 @@ export function calculateNormalTierNetProfit(
         : shippingCompany.shippingTierNormal[1] * consts.taxMultiplier;
   const fullTransactionCost =
     consts.transactionFeeTierNormal * consts.taxMultiplier;
+  // Vat
+  const vatSale = salePrice - salePrice / productVatRate;
+  const vatCommission =
+    fullCommissionCost - fullCommissionCost / consts.taxMultiplier;
+  const vatProduct = fullProductCost - fullProductCost / productVatRate;
+  const vatShipping =
+    fullShippingCost - fullShippingCost / consts.taxMultiplier;
+  const vatTransaction =
+    fullTransactionCost - fullTransactionCost / consts.taxMultiplier;
   const totalVat =
-    (salePrice - (salePrice / productVatRate)) -
-    (fullCommissionCost - (fullCommissionCost / consts.taxMultiplier)) -
-    (fullProductCost - (fullProductCost / productVatRate)) -
-    (fullShippingCost - (fullShippingCost / consts.taxMultiplier)) -
-    (fullTransactionCost - (fullTransactionCost / consts.taxMultiplier));
+    vatSale - vatCommission - vatProduct - vatShipping - vatTransaction;
+  // Profit
+  const amountToDeposited =
+    salePrice - fullCommissionCost - fullShippingCost - fullTransactionCost;
+  const netProfit = amountToDeposited - fullProductCost - totalVat;
+  const profitRate = (netProfit / salePrice) * 100;
   return {
     fullCommissionCost,
     fullProductCost,
     fullShippingCost,
     fullTransactionCost,
-    totalVat
+    vatSale,
+    vatCommission,
+    vatProduct,
+    vatShipping,
+    vatTransaction,
+    totalVat,
+    amountToDeposited,
+    netProfit,
+    profitRate
   };
 }
