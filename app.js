@@ -4,11 +4,16 @@ const cargoCompanies = consts.companies;
 
 const values = getFormValues();
 
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+const tooltipTriggerList = document.querySelectorAll(
+  '[data-bs-toggle="tooltip"]',
+);
+const tooltipList = [...tooltipTriggerList].map(
+  (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
+);
 
 // Ekrandaki ID'ler
 const calculatorForm = document.querySelector("#calculatorForm");
+const resultDiv = document.querySelector("#result");
 const shippingCompanySelect = document.querySelector("#shippingCompany");
 
 // Kargo firma seçeneklerini ekleme
@@ -19,9 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Temizle butonu
-document.querySelector("#clear").addEventListener("click", () => {
+// Temizle butonları
+document.querySelector("#clearForm").addEventListener("click", () => {
   calculatorForm.reset();
+});
+document.querySelector("#clearResult").addEventListener("click", () => {
+  resultDiv.innerHTML = "";
 });
 
 // DOM İşlemleri
@@ -41,28 +49,42 @@ document.querySelector("#calculate").addEventListener("click", (e) => {
   displayResults(normalCalculated);
 });
 
-// Sonuçları Ekrana Yazdırma ve Animasyon Fonksiyonu
+// Sonuçları Ekrana Yazdırma
 function displayResults(data) {
-  // Sonuçların yazdırılacağı HTML elemanını seçiyoruz
-  const resultDiv = document.querySelector("#result");
+  const uniqueId = Date.now();
+  const currentTime = new Date().toLocaleTimeString("tr-TR");
 
-  // Animasyon için başlangıç durumu (Önce görünmez yapıyoruz)
-  resultDiv.style.opacity = 0;
-  resultDiv.style.transition = "opacity 0.4s ease-in-out";
-
-  // Kâr durumuna göre renk ve ikon belirliyoruz (Yeşil veya Kırmızı)
+  // Kâr durumuna göre renk ve ikon (Yeşil veya Kırmızı)
   const profitColor = data.netProfit >= 0 ? "text-success" : "text-danger";
   const profitIcon =
     data.netProfit >= 0 ? "bi-graph-up-arrow" : "bi-graph-down-arrow";
 
-  // profitRate (Kâr Oranı) değerinin hesaplanıp hesaplanmadığını kontrol ediyoruz
-  const safeProfitRate = data.profitRate ? data.profitRate.toFixed(2) : "0.00";
+  // profitRate (Kâr Oranı) değerinin hesaplanmasını kontrol
+  const safeProfitRate = isFinite(data.profitRate)
+    ? data.profitRate.toFixed(2)
+    : "0.00";
+
+  // Yeni hesaplama için yepyeni bir "div" (kapsayıcı) oluşturuyoruz
+  const newResultCard = document.createElement("div");
 
   // HTML şablonunu oluşturup resultDiv'in içine ekliyoruz
-  resultDiv.innerHTML = `
+  newResultCard.innerHTML = `
         <div class="card shadow border-0 mt-4 rounded-4">
             <div class="card-body p-4">
-                <h4 class="card-title mb-4 text-center fw-bold text-secondary">Hesaplama Özeti</h4>
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center mb-4 gap-2">
+                    
+                    <h5 class="card-title mb-0 fw-bold text-secondary">
+                        Hesaplama Özeti 
+                        <small class="text-muted fw-normal ms-2 fs-6">
+                            <i class="bi bi-clock me-1"></i>${currentTime}
+                        </small>
+                    </h5>
+
+                    <span class="badge bg-light text-secondary border p-2">
+                        Satış: ${data.vatSale ? (data.vatSale + data.vatSale / 0.2).toFixed(2) : "..."} ₺ | İşlem: #${uniqueId.toString().slice(-4)}
+                    </span>
+
+                </div>
 
                 <div class="row g-3 mb-4 text-center">
                     
@@ -102,11 +124,11 @@ function displayResults(data) {
                     
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCosts">
+                            <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#costs_${uniqueId}">
                                 <i class="bi bi-receipt me-2 text-warning"></i> Maliyet Kalemleri
                             </button>
                         </h2>
-                        <div id="collapseCosts" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div id="costs_${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#accordion_${uniqueId}">
                             <div class="accordion-body p-0">
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
@@ -132,11 +154,11 @@ function displayResults(data) {
 
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVat">
+                            <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#vat_${uniqueId}">
                                 <i class="bi bi-bank me-2 text-info"></i> KDV Detayları
                             </button>
                         </h2>
-                        <div id="collapseVat" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div id="vat_${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#accordion_${uniqueId}">
                             <div class="accordion-body p-0">
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
@@ -172,9 +194,6 @@ function displayResults(data) {
             </div>
         </div>
     `;
-
-  // İçerik DOM'a eklendikten kısa bir süre sonra görünürlüğü %100 yapıyoruz (Fade-in efekti)
-  setTimeout(() => {
-    resultDiv.style.opacity = 1;
-  }, 50);
+  // Oluşturduğumuz HTML yapısını ana div'in en altına ekliyoruz
+  resultDiv.prepend(newResultCard);
 }
