@@ -4,6 +4,9 @@ const cargoCompanies = consts.companies;
 
 const values = getFormValues();
 
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
 // Ekrandaki ID'ler
 const calculatorForm = document.querySelector("#calculatorForm");
 const shippingCompanySelect = document.querySelector("#shippingCompany");

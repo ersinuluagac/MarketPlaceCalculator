@@ -11,8 +11,6 @@ export function getFormValues(form){
   const selectedCargoKey = allForm.shippingCompany;
   const shippingCompany = consts.companies[selectedCargoKey];
   const volumetricWeight = Number(allForm.volumetricWeight);
-  // const returnRate = Number(allForm.returnRate);
-  // const packagingCost = Number(allForm.packagingCost);
 
   return{
     salePrice, commissionRate, productCost, productVatRate, shippingCompany, volumetricWeight

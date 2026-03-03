@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bootstrap demo</title>
+  <title>Pazaryeri Kâr Hesaplama Aracı</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
@@ -14,36 +14,43 @@
     <div class="row justify-content-center">
       <div class="col-12 col-md-10 col-lg-8">
         <div class="row text-center">
-          <h1>E-Ticaret Kâr Hesaplayıcı</h1>
+          <h1>Pazaryeri Kâr Hesaplama Aracı</h1>
 
           <form id="calculatorForm" class="row g-3 mt-4">
 
             <div class="col-12 col-md-6">
-              <div class="input-group">
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Ürünün KDV dahil pazaryerindeki satış fiyatını giriniz.">
                 <span class="input-group-text"><i class="bi bi-tag"></i></span>
                 <input type="number" step="0.1" class="form-control" id="salePrice" name="salePrice"
-                  placeholder="Satış Fiyatı" required>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-percent"></i></span>
-                <input type="number" step="0.1" class="form-control" id="commissionRate" name="commissionRate"
-                  placeholder="Komisyon Oranı" required>
+                  placeholder="Satış Fiyatı" required title="Lütfen rakamlar ile giriş yapınız.">
               </div>
             </div>
 
             <div class="col-12 col-md-6">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-                <input type="number" step="0.1" class="form-control" id="productCost" name="productCost"
-                  placeholder="Ürün Maliyeti (KDV Hariç)" required>
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Pazaryerinin komisyon oranını giriniz.">
+                <span class="input-group-text"><i class="bi bi-percent"></i></span>
+                <input type="number" step="0.1" class="form-control" id="commissionRate" name="commissionRate"
+                  placeholder="Komisyon Oranı" required title="Lütfen rakamlar ile giriş yapınız.">
               </div>
             </div>
+
             <div class="col-12 col-md-6">
-              <div class="input-group">
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Ürünün KDV hariç fiyatını giriniz.">
+                <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                <input type="number" step="0.1" class="form-control" id="productCost" name="productCost"
+                  placeholder="Ürün Maliyeti (KDV Hariç)" required title="Lütfen rakamlar ile giriş yapınız.">
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Ürünün KDV oranını seçiniz.">
                 <span class="input-group-text"><i class="bi bi-tags"></i></span>
-                <select class="form-select" id="productVatRate" name="productVatRate" required>
+                <select class="form-select" id="productVatRate" name="productVatRate" required
+                  title="Lütfen seçeneklerden birini seçiniz.">
                   <option selected hidden>Ürün KDV Oranı</option>
                   <option value="1">0</option>
                   <option value="1.01">1</option>
@@ -54,35 +61,25 @@
             </div>
 
             <div class="col-12 col-md-6">
-              <div class="input-group">
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Ürünün hangi kargo firması ile göndereceğiniz seçin.">
                 <span class="input-group-text"><i class="bi bi-truck"></i></span>
-                <select class="form-select" id="shippingCompany" name="shippingCompany" required>
+                <select class="form-select" id="shippingCompany" name="shippingCompany" required
+                  title="Lütfen seçeneklerden birini seçiniz.">
                   <option selected hidden>Kargo firması</option>
                 </select>
               </div>
             </div>
+
             <div class="col-12 col-md-6">
-              <div class="input-group">
+              <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-title="Kargonun boyutunu gösteren desi değerini giriniz">
                 <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
                 <input type="number" class="form-control" id="volumetricWeight" name="volumetricWeight"
-                  placeholder="Kargo Desisi (0-30)" min="0" max="30" required>
+                  placeholder="Kargo Desisi (0-30)" min="0" max="30" required
+                  title="Lütfen rakamlar ile giriş yapınız.">
               </div>
             </div>
-
-            <!-- <div class="col-12 col-md-6">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-arrow-counterclockwise"></i></span>
-                <input type="number" step="0.5" class="form-control" id="returnRate" name="returnRate"
-                  placeholder="İade Oranı (%)" required>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-gift"></i></span>
-                <input type="number" step="0.1" class="form-control" id="packagingCost" name="packagingCost"
-                  placeholder="Paketleme Maliyeti (TL)" required>
-              </div>
-            </div> -->
 
             <div class="col-12 col-md-6">
               <input id="calculate" type="submit" class="btn btn-success w-100" value="Hesapla">
@@ -94,7 +91,7 @@
           </form>
 
           <div id="result" class="mt-3">
-            
+
           </div>
         </div>
       </div>
