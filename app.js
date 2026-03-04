@@ -37,6 +37,19 @@ document.querySelector("#calculate").addEventListener("click", (e) => {
   e.preventDefault();
   const values = getFormValues(calculatorForm);
 
+const form = document.querySelector("#calculatorForm");
+
+  // 2. Formdaki "required" alanlar doldurulmuş mu diye kontrol ediyoruz
+  if (!form.checkValidity()) {
+    // Eğer doldurulmayan yer varsa:
+    form.classList.add("was-validated"); // Bootstrap'in kırmızı çerçevelerini ekler
+    form.reportValidity(); // Tarayıcının varsayılan uyarı baloncuğunu çıkarır
+    return; // Kodu burada DURDURUR! Aşağıdaki hesaplama işlemlerine geçmez.
+  }
+
+  // 3. Eğer her şey doğru doldurulduysa hata çerçevelerini temizler
+  form.classList.remove("was-validated");
+
   const normalCalculated = calculator.calculateNormalTierNetProfit(
     values.salePrice,
     values.commissionRate,

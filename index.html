@@ -23,7 +23,7 @@
                 data-bs-title="Ürünün KDV dahil pazaryerindeki satış fiyatını giriniz.">
                 <span class="input-group-text"><i class="bi bi-tag"></i></span>
                 <input type="number" step="0.1" class="form-control" id="salePrice" name="salePrice"
-                  placeholder="Satış Fiyatı" required title="Lütfen rakamlar ile giriş yapınız.">
+                  placeholder="Satış Fiyatı" required>
               </div>
             </div>
 
@@ -32,7 +32,7 @@
                 data-bs-title="Pazaryerinin komisyon oranını giriniz.">
                 <span class="input-group-text"><i class="bi bi-percent"></i></span>
                 <input type="number" step="0.1" class="form-control" id="commissionRate" name="commissionRate"
-                  placeholder="Komisyon Oranı" required title="Lütfen rakamlar ile giriş yapınız.">
+                  placeholder="Komisyon Oranı" required>
               </div>
             </div>
 
@@ -41,7 +41,7 @@
                 data-bs-title="Ürünün KDV hariç fiyatını giriniz.">
                 <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
                 <input type="number" step="0.1" class="form-control" id="productCost" name="productCost"
-                  placeholder="Ürün Maliyeti (KDV Hariç)" required title="Lütfen rakamlar ile giriş yapınız.">
+                  placeholder="Ürün Maliyeti (KDV Hariç)" required>
               </div>
             </div>
 
@@ -49,9 +49,8 @@
               <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
                 data-bs-title="Ürünün KDV oranını seçiniz.">
                 <span class="input-group-text"><i class="bi bi-tags"></i></span>
-                <select class="form-select" id="productVatRate" name="productVatRate" required
-                  title="Lütfen seçeneklerden birini seçiniz.">
-                  <option selected hidden>Ürün KDV Oranı</option>
+                <select class="form-select" id="productVatRate" name="productVatRate" required>
+                  <option value="" selected disabled hidden>Ürün KDV Oranı</option>
                   <option value="1">0</option>
                   <option value="1.01">1</option>
                   <option value="1.10">10</option>
@@ -64,9 +63,8 @@
               <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="top"
                 data-bs-title="Ürünün hangi kargo firması ile göndereceğiniz seçin.">
                 <span class="input-group-text"><i class="bi bi-truck"></i></span>
-                <select class="form-select" id="shippingCompany" name="shippingCompany" required
-                  title="Lütfen seçeneklerden birini seçiniz.">
-                  <option selected hidden>Kargo firması</option>
+                <select class="form-select" id="shippingCompany" name="shippingCompany" required>
+                  <option value="" selected disabled hidden>Kargo firması</option>
                 </select>
               </div>
             </div>
@@ -76,8 +74,7 @@
                 data-bs-title="Kargonun boyutunu gösteren desi değerini giriniz">
                 <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
                 <input type="number" class="form-control" id="volumetricWeight" name="volumetricWeight"
-                  placeholder="Kargo Desisi (0-30)" min="0" max="30" required
-                  title="Lütfen rakamlar ile giriş yapınız.">
+                  placeholder="Kargo Desisi (0-30)" min="0" max="30" required>
               </div>
             </div>
 
