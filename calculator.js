@@ -7,86 +7,118 @@ export function calculateNetProfit(
   volumetricWeight,
   consts,
 ) {
+  //// Shipping Type
+  const shippingType =
+    salePrice >= 350 || volumetricWeight > 10
+      ? "Normal"
+      : salePrice >= 200
+        ? "Üst Barem"
+        : "Alt Barem";
   //// Costs
   const fullCommissionCost = salePrice * (commissionRate / 100);
-  const fullProductCost = productCost * productVatRate;
+  const fullProductCost = (productCost * productVatRate).toFixed(2);
   // Cargo
   const fullNormalShippingCost =
     salePrice > 349.99 || volumetricWeight > 10
-      ? shippingCompany.prices[volumetricWeight] * consts.taxMultiplier
+      ? (shippingCompany.prices[volumetricWeight] * consts.taxMultiplier).toFixed(2)
       : salePrice < 200
-        ? shippingCompany.shippingTierNormal[0] * consts.taxMultiplier
-        : shippingCompany.shippingTierNormal[1] * consts.taxMultiplier;
+        ? (shippingCompany.shippingTierNormal[0] * consts.taxMultiplier).toFixed(2)
+        : (shippingCompany.shippingTierNormal[1] * consts.taxMultiplier).toFixed(2);
   const fullFastShippingCost =
     salePrice > 349.99 || volumetricWeight > 10
       ? fullNormalShippingCost
       : salePrice < 200
-        ? shippingCompany.shippingTierFast[0] * consts.taxMultiplier
-        : shippingCompany.shippingTierFast[1] * consts.taxMultiplier;
+        ? (shippingCompany.shippingTierFast[0] * consts.taxMultiplier).toFixed(2)
+        : (shippingCompany.shippingTierFast[1] * consts.taxMultiplier).toFixed(2);
   // Transaction
   const fullNormalTransactionCost =
-    consts.transactionFeeTierNormal * consts.taxMultiplier;
+    (consts.transactionFeeTierNormal * consts.taxMultiplier).toFixed(2);
   const fullFastTransactionCost =
-    consts.transactionFeeTierFast * consts.taxMultiplier;
+    (consts.transactionFeeTierFast * consts.taxMultiplier).toFixed(2);
   //// VATs
-  const vatSale = salePrice - salePrice / productVatRate;
+  const vatSale = (salePrice - salePrice / productVatRate).toFixed(2);
   const vatCommission =
-    fullCommissionCost - fullCommissionCost / consts.taxMultiplier;
-  const vatProduct = fullProductCost - fullProductCost / productVatRate;
+    (fullCommissionCost - fullCommissionCost / consts.taxMultiplier).toFixed(2);
+  const vatProduct = (fullProductCost - fullProductCost / productVatRate).toFixed(2);
   // Cargo
   const vatNormalShipping =
-    fullNormalShippingCost - fullNormalShippingCost / consts.taxMultiplier;
+    (fullNormalShippingCost - fullNormalShippingCost / consts.taxMultiplier).toFixed(2);
   const vatFastShipping =
-    fullFastShippingCost - fullFastShippingCost / consts.taxMultiplier;
+    (fullFastShippingCost - fullFastShippingCost / consts.taxMultiplier).toFixed(2);
   // Transaction
   const vatNormalTransaction =
-    fullNormalTransactionCost -
-    fullNormalTransactionCost / consts.taxMultiplier;
+    (fullNormalTransactionCost -
+    fullNormalTransactionCost / consts.taxMultiplier).toFixed(2);
   const vatFastTransaction =
-    fullFastTransactionCost - fullFastTransactionCost / consts.taxMultiplier;
+    (fullFastTransactionCost - fullFastTransactionCost / consts.taxMultiplier).toFixed(2);
   //// Profit
   // Total VATs
-  const totalVatNormal =
+  const totalVatNormal = (
     vatSale -
     vatCommission -
     vatProduct -
     vatNormalShipping -
-    vatNormalTransaction;
-  const totalVatFast =
+    vatNormalTransaction
+  ).toFixed(2);
+  const totalVatFast = (
     vatSale -
     vatCommission -
     vatProduct -
     vatFastShipping -
-    vatNormalTransaction;
-  const totalVatToday =
-    vatSale - vatCommission - vatProduct - vatFastShipping - vatFastTransaction;
+    vatNormalTransaction
+  ).toFixed(2);
+  const totalVatToday = (
+    vatSale -
+    vatCommission -
+    vatProduct -
+    vatFastShipping -
+    vatFastTransaction
+  ).toFixed(2);
   // Amounts To Deposit
-  const amountToDepositedNormal =
+  const amountToDepositedNormal = (
     salePrice -
     fullCommissionCost -
     fullNormalShippingCost -
-    fullNormalTransactionCost;
-  const amountToDepositedFast =
+    fullNormalTransactionCost
+  ).toFixed(2);
+  const amountToDepositedFast = (
     salePrice -
     fullCommissionCost -
     fullFastShippingCost -
-    fullNormalTransactionCost;
-  const amountToDepositedToday =
+    fullNormalTransactionCost
+  ).toFixed(2);
+  const amountToDepositedToday = (
     salePrice -
     fullCommissionCost -
     fullFastShippingCost -
-    fullFastTransactionCost;
+    fullFastTransactionCost
+  ).toFixed(2);
   // Net Profits
-  const netProfitNormal =
-    amountToDepositedNormal - fullProductCost - totalVatNormal;
-  const netProfitFast = amountToDepositedFast - fullProductCost - totalVatFast;
-  const netProfitToday =
-    amountToDepositedToday - fullProductCost - totalVatToday;
-  // Profit Rates
-  const profitRateNormal = (netProfitNormal / salePrice) * 100;
-  const profitRateFast = (netProfitFast / salePrice) * 100;
-  const profitRateToday = (netProfitToday / salePrice) * 100;
+  const netProfitNormal = (
+    amountToDepositedNormal -
+    fullProductCost -
+    totalVatNormal
+  ).toFixed(2);
+  const netProfitFast = (
+    amountToDepositedFast -
+    fullProductCost -
+    totalVatFast
+  ).toFixed(2);
+  const netProfitToday = (
+    amountToDepositedToday -
+    fullProductCost -
+    totalVatToday
+  ).toFixed(2);
+  // Profit Margin
+  const profitMarginNormal = ((netProfitNormal / salePrice) * 100).toFixed(2);
+  const profitMarginFast = ((netProfitFast / salePrice) * 100).toFixed(2);
+  const profitMarginToday = ((netProfitToday / salePrice) * 100).toFixed(2);
+  // ROI
+  const roiNormal = ((netProfitNormal / fullProductCost) * 100).toFixed(2);
+  const roiFast = ((netProfitFast / fullProductCost) * 100).toFixed(2);
+  const roiToday = ((netProfitToday / fullProductCost) * 100).toFixed(2);
   return {
+    shippingType,
     salePrice,
     commissionRate,
     // Costs
@@ -121,8 +153,12 @@ export function calculateNetProfit(
     netProfitFast,
     netProfitToday,
 
-    profitRateNormal,
-    profitRateFast,
-    profitRateToday,
+    profitMarginNormal,
+    profitMarginFast,
+    profitMarginToday,
+
+    roiNormal,
+    roiFast,
+    roiToday
   };
 }
