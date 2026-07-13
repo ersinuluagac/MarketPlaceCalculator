@@ -4,7 +4,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pazaryeri Kâr Hesaplama Aracı</title>
+
+  <!-- Temel SEO Etiketleri -->
+  <title>Pazaryeri Kâr Hesaplama Aracı | Net Kâr ve KDV Hesapla</title>
+  <meta name="description"
+    content="Trendyol, Hepsiburada, Amazon gibi pazaryerleri için komisyon, kargo ve KDV dahil net kârınızı kuruşu kuruşuna, ücretsiz ve hızlıca hesaplayın.">
+  <meta name="keywords"
+    content="pazaryeri kâr hesaplama, e-ticaret kâr hesaplama, komisyon hesaplama, trendyol kâr hesaplama, desi kargo hesaplama, yatırım getirisi, e-ticaret aracı">
+  <meta name="author" content="Senin Adın veya Markan">
+  <meta name="robots" content="index, follow">
+  <!-- Open Graph (Sosyal Medya Görünümü) -->
+  <meta property="og:title" content="Pazaryeri Kâr Hesaplama Aracı">
+  <meta property="og:description"
+    content="E-ticaret satışlarınızdan ne kadar net kâr edeceğinizi hemen öğrenin. Kargo ve KDV kesintilerini anında hesaplayın.">
+  <meta property="og:type" content="website">
+  <!-- <meta property="og:url" content="https://siteninadresi.com"> -->
+  <!-- <meta property="og:image" content="https://siteninadresi.com/og-image.jpg"> -->
+  <meta property="og:site_name" content="Kâr Hesaplama Aracı">
+
+  <!-- Favicon (Tarayıcı Sekmesindeki Küçük İkon) -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>📈</text></svg>">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
@@ -120,5 +141,19 @@
   <script type="module" src="app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+  <div id="dangerToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+    aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body fw-bold">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Dikkat: Bu satış ayarlarıyla zarar edebilirsiniz!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+        aria-label="Kapat"></button>
+    </div>
+  </div>
+</div>
 
 </html>
