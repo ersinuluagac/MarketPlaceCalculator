@@ -22,7 +22,7 @@ export const consts = {
   // Vergi ve İşlem
   taxAndTransaction: {
     taxMultiplier: 1.20,
-    transactionFeeTierFast: 6.99,
+    transactionFeeTierFast: 4.99,
     transactionFeeTierNormal: 10.99,
   },
   // Firmalar ve Fiyatlar
@@ -33,7 +33,7 @@ export const consts = {
     tex: {
       name: "Trendyol Express",
       shippingTierFast: [34.16, 65.83],
-      shippingTierNormal: [64.58, 72.91],
+      shippingTierNormal: [68.74, 74.16],
       prices: [
         77.54, // 0 Desi
         77.54, 77.54, 93.63, 101.46, 107.98, 118.30, 125.66, 134.21, 142.42, 153.47, // 1-10 Desi
@@ -43,8 +43,8 @@ export const consts = {
     },
     aras: {
       name: "Aras Kargo",
-      shippingTierFast: [42.91, 73.74],
-      shippingTierNormal: [71.66, 79.99],
+      shippingTierFast: [48.33, 79.16],
+      shippingTierNormal: [80.83, 86.24],
       prices: [
         88.96, // 0 Desi
         88.96, 88.96, 100.84, 109.90, 117.85, 128.39, 136.17, 145.27, 153.60, 164.23, // 1-10 Desi
@@ -55,7 +55,7 @@ export const consts = {
     ptt: {
       name: "PTT",
       shippingTierFast: [34.16, 65.83],
-      shippingTierNormal: [64.58, 72.91],
+      shippingTierNormal: [68.74, 74.16],
       prices: [
         77.54, // 0 Desi
         77.54, 77.54, 96.00, 96.00, 100.55, 106.83, 113.15, 125.73, 138.34, 157.26, // 1-10 Desi
@@ -65,8 +65,8 @@ export const consts = {
     },
     surat: {
       name: "Sürat Kargo",
-      shippingTierFast: [48.74, 79.58],
-      shippingTierNormal: [77.49, 85.83],
+      shippingTierFast: [54.58, 85.41],
+      shippingTierNormal: [87.08, 92.49],
       prices: [
         95.54, // 0 Desi
         95.54, 95.54, 106.45, 116.40, 122.41, 134.48, 143.61, 152.60, 161.73, 170.86, // 1-10 Desi
@@ -76,8 +76,8 @@ export const consts = {
     },
     dhl: {
       name: "DHL eCommerce",
-      shippingTierFast: [52.08, 82.91],
-      shippingTierNormal: [80.83, 89.16],
+      shippingTierFast: [57.08, 87.91],
+      shippingTierNormal: [89.58, 94.99],
       prices: [
         97.99, // 0 Desi
         97.99, 97.99, 110.99, 124.99, 137.99, 150.99, 159.99, 169.99, 179.99, 189.99, // 1-10 Desi
@@ -87,8 +87,8 @@ export const consts = {
     },
     yurtici: {
       name: "Yurtiçi Kargo",
-      shippingTierFast: [74.58, 104.58],
-      shippingTierNormal: [101.24, 109.58],
+      shippingTierFast: [83.33, 113.33],
+      shippingTierNormal: [114.16, 119.16],
       prices: [
         121.75, // 0 Desi
         121.75, 121.75, 132.56, 135.41, 157.16, 164.75, 186.34, 193.50, 205.50, 214.59, // 1-10 Desi
@@ -98,8 +98,8 @@ export const consts = {
     },
     kolaygelsin: {
       name: "Kolay Gelsin",
-      shippingTierFast: [51.24, 82.08],
-      shippingTierNormal: [79.58, 87.91],
+      shippingTierFast: [55.83, 86.66],
+      shippingTierNormal: [88.33, 93.74],
       prices: [
         96.59, // 0 Desi
         96.59, 96.59, 107.09, 118.64, 128.09, 138.59, 148.04, 158.54, 167.99, 179.54, // 1-10 Desi
