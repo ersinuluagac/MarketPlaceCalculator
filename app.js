@@ -2,30 +2,30 @@ import { getFormValues, consts } from "./data.js";
 import * as calculator from "./calculator.js";
 const cargoCompanies = consts.companies;
 
+// Tooltip Tanımlamaları
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 const tooltipList = [...tooltipTriggerList].map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
 
+// DOM Elementleri
 const calculatorForm = document.querySelector("#calculatorForm");
 const resultDiv = document.querySelector("#result");
 const shippingCompanySelect = document.querySelector("#shippingCompany");
 
-// Kargo firma seçeneklerini ekleme
+// Başlangıç Yüklemeleri (Kargo firmaları ve Geçmiş Listesi)
 document.addEventListener("DOMContentLoaded", () => {
   Object.entries(cargoCompanies).forEach(([key, cargoCompany]) => {
     const option = new Option(cargoCompany.name, key);
     shippingCompanySelect.appendChild(option);
   });
+  renderHistory();
 });
 
-// Temizle butonları
+// Temizle Butonları
 document.querySelector("#clearForm").addEventListener("click", () => {
   calculatorForm.reset();
 });
-document.querySelector("#clearResult").addEventListener("click", () => {
-  resultDiv.innerHTML = "";
-});
 
-// DOM İşlemleri
+// --- FORM GÖNDERME VE HESAPLAMA ---
 calculatorForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const values = getFormValues(calculatorForm);
@@ -35,8 +35,9 @@ calculatorForm.addEventListener("submit", (e) => {
     calculatorForm.reportValidity();
     return;
   }
-
   calculatorForm.classList.remove("was-validated");
+
+  if(resultDiv) resultDiv.innerHTML = ""; 
 
   const normalCalculated = calculator.calculateNetProfit(
     values.salePrice,
@@ -45,25 +46,118 @@ calculatorForm.addEventListener("submit", (e) => {
     values.productVatRate,
     values.shippingCompany,
     values.volumetricWeight,
-    consts.taxAndTransaction,
+    consts.taxAndTransaction
   );
-
+  
   displayResults(normalCalculated);
-
-  // --- ZARAR UYARISI BÖLÜMÜ ---
+  
   if (normalCalculated.netProfitNormal < 0) {
     const toastEl = document.getElementById('dangerToast');
-
-    // Bootstrap Toast'u başlat ve göster
-    const toast = new bootstrap.Toast(toastEl, {
-      delay: 5000 // 5 saniye sonra otomatik kapanır
-    });
-    toast.show();
+    if(toastEl) {
+      const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+      toast.show();
+    }
   }
+
+  // YENİ DÜZENLEME: Eğer form geçmişten yüklenmiyorsa (yani yepyeni bir işlemse) kaydet!
+  if (calculatorForm.dataset.isRestoring !== "true") {
+    values.shippingCompanyKey = shippingCompanySelect.value;
+    saveCalculationToHistory(values, normalCalculated);
+  }
+
+  // İşlem bitince bayrağı (varsa) sıfırla
+  calculatorForm.dataset.isRestoring = "false";
 });
 
-// --- UI OLUŞTURUCU FONKSİYONLAR (YENİ EKLENEN BÖLÜM) ---
 
+// --- GEÇMİŞ (LOCALSTORAGE) YÖNETİMİ ---
+function saveCalculationToHistory(inputs, resultData) {
+  const historyKey = "calculator_history";
+  let history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  
+  const newRecord = {
+    id: Date.now(),
+    date: new Date().toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }),
+    inputs: inputs,
+    profit: resultData.netProfitNormal,
+    margin: resultData.profitMarginNormal
+  };
+
+  history.unshift(newRecord);
+  if (history.length > 5) history.pop(); // Sadece son 10 kaydı tut
+
+  localStorage.setItem(historyKey, JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const historyKey = "calculator_history";
+  const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  const historyListDiv = document.getElementById("historyList");
+  const historyCountSpan = document.getElementById("historyCount");
+  
+  if(historyCountSpan) historyCountSpan.textContent = history.length;
+
+  if (!historyListDiv) return;
+
+  if (history.length === 0) {
+    historyListDiv.innerHTML = `<div class="text-center text-muted mt-5 pt-4"><p>Henüz kayıtlı hesaplamanız bulunmuyor.</p></div>`;
+    return;
+  }
+
+  // HTML tarafına Kargo Firması adını (item.inputs.shippingCompany.name) ekledik
+  historyListDiv.innerHTML = history.map(item => `
+    <div class="card border border-light-subtle shadow-sm">
+      <div class="card-body d-flex justify-content-between align-items-center p-3">
+        <div>
+          <span class="badge bg-light text-secondary border mb-2"><i class="bi bi-clock me-1"></i>${item.date}</span>
+          <h6 class="mb-1 fw-bold">Satış: ${item.inputs.salePrice} ₺</h6>
+          <small class="text-muted d-block mb-1"><i class="bi bi-truck me-1"></i>${item.inputs.shippingCompany.name}</small>
+          <small class="text-muted">Net Kâr: <span class="${item.profit >= 0 ? 'text-success' : 'text-danger'} fw-bold">${item.profit} ₺</span> (%${item.margin})</small>
+        </div>
+        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="restoreCalculation(${item.id})">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Yükle
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Seçilen Geçmişi Forma Geri Doldurma (HTML içinden çağrılacağı için window objesine ekleniyor)
+window.restoreCalculation = function(id) {
+  const history = JSON.parse(localStorage.getItem("calculator_history")) || [];
+  const record = history.find(item => item.id === id);
+  
+  if (record) {
+    document.getElementById("salePrice").value = record.inputs.salePrice;
+    document.getElementById("commissionRate").value = record.inputs.commissionRate;
+    document.getElementById("productCost").value = record.inputs.productCost;
+    document.getElementById("shippingCompany").value = record.inputs.shippingCompanyKey;
+    document.getElementById("volumetricWeight").value = record.inputs.volumetricWeight;
+
+    const vatSelect = document.getElementById("productVatRate");
+    Array.from(vatSelect.options).forEach(opt => {
+      if (Number(opt.value) === record.inputs.productVatRate) {
+        vatSelect.value = opt.value;
+      }
+    });
+
+    const currentTabEl = document.getElementById('current-tab');
+    if(currentTabEl) {
+      const currentTab = new bootstrap.Tab(currentTabEl);
+      currentTab.show();
+    }
+
+    // YENİ DÜZENLEME: Sisteme bu işlemin bir "Geçmişi Yükleme" işlemi olduğunu söylüyoruz
+    document.getElementById("calculatorForm").dataset.isRestoring = "true";
+    
+    // Ve şimdi güvenle tıklatabiliriz
+    document.getElementById("calculate").click();
+  }
+};
+
+
+// --- UI (ARAYÜZ) OLUŞTURUCU FONKSİYONLAR ---
 function createProfitCard(title, badgeColor, icon, colClass, profit, margin, roi, deposit, vat) {
   const isProfit = profit >= 0;
   const statusColor = isProfit ? badgeColor : "danger";
@@ -110,7 +204,6 @@ function createProfitCard(title, badgeColor, icon, colClass, profit, margin, roi
 function createAccordionDetails(data, uniqueId, hasFastShipping) {
   return `
     <div class="accordion accordion-flush border rounded-4 overflow-hidden shadow-sm mt-4" id="detailsAccordion_${uniqueId}">
-      <!-- Maliyet Kalemleri -->
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#costs_${uniqueId}">
@@ -143,8 +236,6 @@ function createAccordionDetails(data, uniqueId, hasFastShipping) {
           </div>
         </div>
       </div>
-
-      <!-- KDV Detayları -->
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#vat_${uniqueId}">
@@ -191,18 +282,13 @@ function displayResults(data) {
 
   const newResultCard = document.createElement("div");
 
-  // Kartları oluştur
   const standardCard = createProfitCard("Standart Teslimat", "secondary", null, colClass, data.netProfitNormal, data.profitMarginNormal, data.roiNormal, data.amountToDepositedNormal, data.totalVatNormal);
-
   const fastCard = hasFastShipping ? createProfitCard("Hızlı Teslimat", "success", "bi-lightning-charge-fill", colClass, data.netProfitFast, data.profitMarginFast, data.roiFast, data.amountToDepositedFast, data.totalVatFast) : "";
-
   const todayCard = createProfitCard("Bugün Kargoda", "primary", "bi-rocket-takeoff-fill", colClass, data.netProfitToday, data.profitMarginToday, data.roiToday, data.amountToDepositedToday, data.totalVatToday);
 
-  // Ana şablonu birleştir
   newResultCard.innerHTML = `
-    <div class="card shadow border-0 mt-3 rounded-5">
+    <div class="card shadow border-0 rounded-5">
       <div class="card-body p-4">
-        <!-- Üst Bölüm (Özet) -->
         <div class="d-flex flex-column flex-lg-row justify-content-lg-between align-items-center mb-4 gap-3 text-center text-lg-start">
           <h5 class="card-title mb-0 fw-bold text-secondary">
             Hesaplama Özeti
@@ -216,19 +302,47 @@ function displayResults(data) {
             İşlem: ${uniqueId.toString().slice(-4)}
           </span>
         </div>
-
-        <!-- Teslimat Kartları -->
         <div class="row gx-3 gy-4 mb-4 text-center mt-3">
           ${standardCard}
           ${fastCard}
           ${todayCard}
         </div>
-
-        <!-- Detaylar Akordeon -->
         ${createAccordionDetails(data, uniqueId, hasFastShipping)}
       </div>
     </div>
   `;
 
-  resultDiv.prepend(newResultCard);
+  if(resultDiv) resultDiv.prepend(newResultCard);
+}
+
+// --- GECE/GÜNDÜZ MODU (DARK MODE) YÖNETİMİ ---
+const themeToggleBtn = document.getElementById("themeToggle");
+const themeIcon = document.getElementById("themeIcon");
+const htmlElement = document.documentElement;
+
+// Sayfa yüklendiğinde hafızadaki temayı uygula
+const savedTheme = localStorage.getItem("calculator_theme") || "light";
+applyTheme(savedTheme);
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const currentTheme = htmlElement.getAttribute("data-bs-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    applyTheme(newTheme);
+  });
+}
+
+function applyTheme(theme) {
+  // Bootstrap 5'in ana tema etiketini HTML'e ekle
+  htmlElement.setAttribute("data-bs-theme", theme);
+  localStorage.setItem("calculator_theme", theme);
+  
+  // İkonu ve buton rengini değiştir
+  if (theme === "dark") {
+    themeIcon.className = "bi bi-sun-fill text-warning"; // Sarı güneş ikonu
+    themeToggleBtn.classList.replace("btn-outline-secondary", "btn-outline-light");
+  } else {
+    themeIcon.className = "bi bi-moon-fill"; // Koyu ay ikonu
+    themeToggleBtn.classList.replace("btn-outline-light", "btn-outline-secondary");
+  }
 }
