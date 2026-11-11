@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trendyol Kâr Hesaplayıcı · Bilge Ağaç</title>
+  <title>KazancınıBil · Satış kârı hesaplayıcı</title>
+  <meta name="application-name" content="KazancınıBil">
+  <meta name="apple-mobile-web-app-title" content="KazancınıBil">
   <meta name="description" content="Tek ürün için Trendyol komisyonu, kargo, KDV ve maliyetleriyle tahmini net kârınızı hesaplayın.">
   <link rel="stylesheet" href="/style.css">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Q9TKEK0V6"></script>
@@ -17,18 +19,18 @@
 </head>
 <body>
   <header class="top"><div class="wrap bar">
-    <a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> Bilge Ağaç</a>
+    <a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a>
     <button type="button" id="theme" aria-pressed="false">Koyu tema</button>
   </div></header>
   <main class="wrap">
-    <div class="intro"><h1>Trendyol Kâr Hesaplayıcı</h1><p>Tek ürünün satış fiyatından elinize kalan tutarı hesaplayın.</p></div>
+    <div class="intro"><h1>Satış kârı hesaplayıcı</h1><p>Trendyol satışınızda kesintileri, fatura tutarını ve ürün başına kârı görün.</p></div>
     <div class="layout">
       <form id="calculatorForm" class="card">
         <fieldset><legend>Ürün bilgileri</legend>
           <div class="fields">
             <label>Satış fiyatı <small>KDV dahil</small><span class="input"><input name="salePrice" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required><span>₺</span></span></label>
             <label>Ürün maliyeti <small>KDV hariç</small><span class="input"><input name="productCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" required><span>₺</span></span></label>
-            <label>Komisyon oranı<span class="input"><input name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="0" required><span>%</span></span></label>
+            <label>Komisyon oranı <small>KDV dahil</small><span class="input"><input name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="0" required><span>%</span></span></label>
             <label>Ürün KDV oranı<select required name="productVatRate"><option value="">Seçiniz</option><option value="1">%0</option><option value="1.01">%1</option><option value="1.10">%10</option><option value="1.20">%20</option></select></label>
           </div>
         </fieldset>
@@ -42,17 +44,17 @@
       </form>
       <div class="right">
         <section id="result" tabindex="-1" aria-labelledby="resultTitle">
-          <div class="summary"><h2 id="resultTitle">Tahmini net kâr</h2><p class="amount" id="profit">—</p><p id="context">Ürün ve kargo bilgilerini girip hesaplayın.</p></div>
+          <div class="summary"><h2 id="resultTitle">Tahmini sipariş kârı</h2><p class="amount" id="profit">—</p><p id="context">Ürün ve kargo bilgilerini girip hesaplayın.</p></div>
           <div id="report" hidden>
             <label class="scenario">Teslimat senaryosu<select id="scenario"></select></label>
-            <dl class="metrics"><div><dt>Kâr marjı</dt><dd id="margin"></dd></div><div><dt>Hesaba yatacak</dt><dd id="deposit"></dd></div><div><dt>Yatırım getirisi</dt><dd id="roi"></dd></div></dl>
-            <details id="detail"><summary>Hesap dökümü</summary><dl class="breakdown" id="breakdown"></dl><p id="tariffDate"></p></details>
+            <dl class="metrics"><div><dt>Brüt satışa göre marj</dt><dd id="margin"></dd></div><div><dt>Stopaj öncesi ödeme</dt><dd id="deposit"></dd></div><div><dt>Brüt maliyete göre getiri</dt><dd id="roi"></dd></div></dl>
+            <details id="detail"><summary>Hesap dökümü</summary><div id="breakdown"></div><p class="note">Ürün alış ve satış KDV oranı aynı kabul edilir. KDV farkı bu siparişe aittir. Ödeme tahminine stopaj ve satıcıya özel kesintiler dahil değildir.</p><p id="tariffDate"></p></details>
           </div>
         </section>
         <details class="history"><summary>Son hesaplamalar <span id="count"></span></summary><div id="history"></div></details>
       </div>
     </div>
   </main>
-  <footer class="wrap"><span>Bilge Ağaç</span><a href="mailto:ersinuluagac@gmail.com?subject=Kâr%20hesaplayıcı">Geri bildirim</a></footer>
+  <footer class="wrap"><span>KazancınıBil</span><a href="mailto:ersinuluagac@gmail.com?subject=Kâr%20hesaplayıcı">Geri bildirim</a></footer>
 </body>
 </html>

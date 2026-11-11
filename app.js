@@ -10,7 +10,7 @@ const historyKey = "calculator_history";
 const moneyFormat = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" });
 const numberFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
 const money = value => moneyFormat.format(Number(value));
-const percent = value => Number.isFinite(Number(value)) ? "%" + numberFormat.format(value) : "—";
+const percent = value => value != null && Number.isFinite(Number(value)) ? "%" + numberFormat.format(value) : "—";
 let current;
 let history;
 
@@ -42,7 +42,7 @@ function updateResult() {
   const fastCargo = mode !== "Normal";
   const today = mode === "Today";
   const profit = data["netProfit" + mode];
-  document.querySelector("#resultTitle").textContent = Number(profit) < 0 ? "Tahmini net zarar" : "Tahmini net kâr";
+  document.querySelector("#resultTitle").textContent = Number(profit) < 0 ? "Tahmini sipariş zararı" : "Tahmini sipariş kârı";
   const amount = document.querySelector("#profit");
   amount.textContent = money(profit);
   amount.classList.toggle("loss", Number(profit) < 0);
@@ -55,30 +55,59 @@ function updateResult() {
   document.querySelector("#roi").textContent = percent(data["roi" + mode]);
   document.querySelector("#deposit").textContent = money(data["amountToDeposited" + mode]);
 
-  const costs = [
-    ["Satış fiyatı (KDV dahil)", data.salePrice],
-    ["Ürün maliyeti (KDV dahil)", data.fullProductCost],
-    ["Komisyon (KDV dahil)", data.fullCommissionCost],
-    ["Kargo (KDV dahil)", fastCargo ? data.fullFastShippingCost : data.fullNormalShippingCost],
-    ["İşlem ücreti (KDV dahil)", today ? data.fullFastTransactionCost : data.fullNormalTransactionCost],
-    ["Satış KDV’si", data.vatSale],
-    ["Ürün maliyeti KDV’si", data.vatProduct],
-    ["Komisyon KDV’si", data.vatCommission],
-    ["Kargo KDV’si", fastCargo ? data.vatFastShipping : data.vatNormalShipping],
-    ["İşlem ücreti KDV’si", today ? data.vatFastTransaction : data.vatNormalTransaction],
-    ["Net KDV", data["totalVat" + mode]]
-  ];
+  const shipping = fastCargo ? data.fullFastShippingCost : data.fullNormalShippingCost;
+  const transaction = today ? data.fullFastTransactionCost : data.fullNormalTransactionCost;
+  const netVat = data["totalVat" + mode];
+  const payout = data["amountToDeposited" + mode];
   const breakdown = document.querySelector("#breakdown");
-  breakdown.replaceChildren();
-  for (const [title, value] of costs) {
+  breakdown.replaceChildren(
+    receipt("Pazaryeri ödemesi", [
+      ["Satış fiyatı", data.salePrice],
+      ["Komisyon", -data.fullCommissionCost],
+      ["Kargo", -shipping],
+      ["İşlem ücreti", -transaction],
+      ["Stopaj öncesi ödeme", payout]
+    ]),
+    receipt("Müşterinin faturası", [
+      ["KDV hariç ürün bedeli", data.invoiceNet],
+      ["Satış KDV’si", data.vatSale],
+      ["Fatura toplamı", data.salePrice]
+    ]),
+    receipt("Siparişin KDV hesabı", [
+      ["Satış KDV’si", data.vatSale],
+      ["Ürün maliyeti KDV’si", -data.vatProduct],
+      ["Komisyon KDV’si", -data.vatCommission],
+      ["Kargo KDV’si", -(fastCargo ? data.vatFastShipping : data.vatNormalShipping)],
+      ["İşlem ücreti KDV’si", -(today ? data.vatFastTransaction : data.vatNormalTransaction)],
+      ["Siparişin KDV farkı", netVat]
+    ]),
+    receipt("Sipariş kârı", [
+      ["Stopaj öncesi ödeme", payout],
+      ["Ürün maliyeti (KDV dahil)", -data.fullProductCost],
+      ["KDV farkının etkisi", -netVat],
+      ["Vergi öncesi sipariş kârı", profit]
+    ])
+  );
+}
+
+function receipt(title, entries) {
+  const section = document.createElement("section");
+  section.className = "breakdown";
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+  const list = document.createElement("dl");
+  for (const [label, value] of entries) {
     const row = document.createElement("div");
-    const label = document.createElement("dt");
+    const term = document.createElement("dt");
     const cost = document.createElement("dd");
-    label.textContent = title;
-    cost.textContent = money(value);
-    row.append(label, cost);
-    breakdown.append(row);
+    term.textContent = label;
+    cost.textContent = money(Number(value) || 0);
+    row.append(term, cost);
+    list.append(row);
   }
+  list.lastElementChild.className = "subtotal";
+  section.append(heading, list);
+  return section;
 }
 
 function calculate(save) {
@@ -92,7 +121,7 @@ function calculate(save) {
   updateResult();
   report.hidden = false;
   if (save) {
-    const savedInputs = Object.fromEntries(new FormData(form));
+    const { shippingCompany, ...savedInputs } = inputs;
     savedInputs.shippingCompanyKey = form.elements.shippingCompany.value;
     history.unshift({ id: Date.now(), inputs: savedInputs, profit: data.netProfitNormal });
     history = history.slice(0, 5);
@@ -111,7 +140,7 @@ scenario.addEventListener("change", updateResult);
 function clearResult() {
   current = null;
   report.hidden = true;
-  document.querySelector("#resultTitle").textContent = "Tahmini net kâr";
+  document.querySelector("#resultTitle").textContent = "Tahmini sipariş kârı";
   document.querySelector("#profit").textContent = "—";
   document.querySelector("#profit").classList.remove("loss");
   document.querySelector("#context").textContent = "Ürün ve kargo bilgilerini girip hesaplayın.";
@@ -135,7 +164,7 @@ function renderHistory() {
     const text = document.createElement("div");
     text.textContent = money(inputs.salePrice) + " satış";
     const info = document.createElement("small");
-    info.textContent = consts.companies[inputs.shippingCompanyKey].name + " · Net kâr " + money(record.profit);
+    info.textContent = consts.companies[inputs.shippingCompanyKey].name + " · Sipariş kârı " + money(record.profit);
     text.append(info);
     const restore = document.createElement("button");
     restore.type = "button";

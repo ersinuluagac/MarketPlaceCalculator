@@ -1,164 +1,59 @@
+// Monetary arithmetic uses kuruş. VAT-exclusive tariff entries are the invoiced bases.
+const cents = value => Math.round(value * 100);
+const amount = value => (value / 100).toFixed(2);
+
+function charge(net, multiplier) {
+  const gross = Math.round(net * multiplier / 100);
+  return { net, gross, vat: gross - net };
+}
+
 export function calculateNetProfit(
-  salePrice,
-  commissionRate,
-  productCost,
-  productVatRate,
-  shippingCompany,
-  volumetricWeight,
-  consts,
+  salePrice, commissionRate, productCost, productVatRate, shippingCompany, volumetricWeight, consts,
 ) {
-  //// Shipping Type
-  const shippingType =
-    salePrice >= 350 || volumetricWeight > 10
-      ? "Normal"
-      : salePrice >= 200
-        ? "Üst Barem"
-        : "Alt Barem";
-  //// Costs
-  const fullCommissionCost = salePrice * (commissionRate / 100);
-  const fullProductCost = (productCost * productVatRate).toFixed(2);
-  // Cargo
-  const fullNormalShippingCost =
-    salePrice > 349.99 || volumetricWeight > 10
-      ? (shippingCompany.prices[volumetricWeight] * consts.taxMultiplier).toFixed(2)
-      : salePrice < 200
-        ? (shippingCompany.shippingTierNormal[0] * consts.taxMultiplier).toFixed(2)
-        : (shippingCompany.shippingTierNormal[1] * consts.taxMultiplier).toFixed(2);
-  const fullFastShippingCost =
-    salePrice > 349.99 || volumetricWeight > 10
-      ? fullNormalShippingCost
-      : salePrice < 200
-        ? (shippingCompany.shippingTierFast[0] * consts.taxMultiplier).toFixed(2)
-        : (shippingCompany.shippingTierFast[1] * consts.taxMultiplier).toFixed(2);
-  // Transaction
-  const fullNormalTransactionCost =
-    (consts.transactionFeeTierNormal * consts.taxMultiplier).toFixed(2);
-  const fullFastTransactionCost =
-    (consts.transactionFeeTierFast * consts.taxMultiplier).toFixed(2);
-  //// VATs
-  const vatSale = (salePrice - salePrice / productVatRate).toFixed(2);
-  const vatCommission =
-    (fullCommissionCost - fullCommissionCost / consts.taxMultiplier).toFixed(2);
-  const vatProduct = (fullProductCost - fullProductCost / productVatRate).toFixed(2);
-  // Cargo
-  const vatNormalShipping =
-    (fullNormalShippingCost - fullNormalShippingCost / consts.taxMultiplier).toFixed(2);
-  const vatFastShipping =
-    (fullFastShippingCost - fullFastShippingCost / consts.taxMultiplier).toFixed(2);
-  // Transaction
-  const vatNormalTransaction =
-    (fullNormalTransactionCost -
-    fullNormalTransactionCost / consts.taxMultiplier).toFixed(2);
-  const vatFastTransaction =
-    (fullFastTransactionCost - fullFastTransactionCost / consts.taxMultiplier).toFixed(2);
-  //// Profit
-  // Total VATs
-  const totalVatNormal = (
-    vatSale -
-    vatCommission -
-    vatProduct -
-    vatNormalShipping -
-    vatNormalTransaction
-  ).toFixed(2);
-  const totalVatFast = (
-    vatSale -
-    vatCommission -
-    vatProduct -
-    vatFastShipping -
-    vatNormalTransaction
-  ).toFixed(2);
-  const totalVatToday = (
-    vatSale -
-    vatCommission -
-    vatProduct -
-    vatFastShipping -
-    vatFastTransaction
-  ).toFixed(2);
-  // Amounts To Deposit
-  const amountToDepositedNormal = (
-    salePrice -
-    fullCommissionCost -
-    fullNormalShippingCost -
-    fullNormalTransactionCost
-  ).toFixed(2);
-  const amountToDepositedFast = (
-    salePrice -
-    fullCommissionCost -
-    fullFastShippingCost -
-    fullNormalTransactionCost
-  ).toFixed(2);
-  const amountToDepositedToday = (
-    salePrice -
-    fullCommissionCost -
-    fullFastShippingCost -
-    fullFastTransactionCost
-  ).toFixed(2);
-  // Net Profits
-  const netProfitNormal = (
-    amountToDepositedNormal -
-    fullProductCost -
-    totalVatNormal
-  ).toFixed(2);
-  const netProfitFast = (
-    amountToDepositedFast -
-    fullProductCost -
-    totalVatFast
-  ).toFixed(2);
-  const netProfitToday = (
-    amountToDepositedToday -
-    fullProductCost -
-    totalVatToday
-  ).toFixed(2);
-  // Profit Margin
-  const profitMarginNormal = ((netProfitNormal / salePrice) * 100).toFixed(2);
-  const profitMarginFast = ((netProfitFast / salePrice) * 100).toFixed(2);
-  const profitMarginToday = ((netProfitToday / salePrice) * 100).toFixed(2);
-  // ROI
-  const roiNormal = ((netProfitNormal / fullProductCost) * 100).toFixed(2);
-  const roiFast = ((netProfitFast / fullProductCost) * 100).toFixed(2);
-  const roiToday = ((netProfitToday / fullProductCost) * 100).toFixed(2);
-  return {
-    shippingType,
-    salePrice,
-    commissionRate,
-    // Costs
-    fullCommissionCost,
-    fullProductCost,
-    // Cargo
-    fullNormalShippingCost,
-    fullFastShippingCost,
-    // Transaction
-    fullNormalTransactionCost,
-    fullFastTransactionCost,
-    // VATs
-    vatSale,
-    vatCommission,
-    vatProduct,
-    // Cargos
-    vatNormalShipping,
-    vatFastShipping,
-    // Transaction
-    vatNormalTransaction,
-    vatFastTransaction,
-    // Profit
-    totalVatNormal,
-    totalVatFast,
-    totalVatToday,
+  const sale = cents(salePrice);
+  const productMultiplier = Math.round(productVatRate * 100);
+  const serviceMultiplier = Math.round(consts.taxMultiplier * 100);
+  const invoiceNet = Math.round(sale * 100 / productMultiplier);
+  const saleVat = sale - invoiceNet;
+  const product = charge(cents(productCost), productMultiplier);
 
-    amountToDepositedNormal,
-    amountToDepositedFast,
-    amountToDepositedToday,
+  // The entered rate includes service VAT and applies to the gross sale price.
+  const commissionBasisPoints = Math.round(commissionRate * 100);
+  const commission = Math.round(sale * commissionBasisPoints / 10000);
+  const commissionNet = Math.round(commission * 100 / serviceMultiplier);
+  const commissionVat = commission - commissionNet;
 
-    netProfitNormal,
-    netProfitFast,
-    netProfitToday,
+  const usesDesi = sale >= 35000 || volumetricWeight > 10;
+  const tier = sale < 20000 ? 0 : 1;
+  const shippingType = usesDesi ? "Normal" : ["Alt Barem", "Üst Barem"][tier];
+  const standardShipping = charge(cents(usesDesi
+    ? shippingCompany.prices[volumetricWeight] : shippingCompany.shippingTierNormal[tier]), serviceMultiplier);
+  const fastShipping = usesDesi ? standardShipping : charge(cents(shippingCompany.shippingTierFast[tier]), serviceMultiplier);
+  const standardFee = charge(cents(consts.transactionFeeTierNormal), serviceMultiplier);
+  const todayFee = charge(cents(consts.transactionFeeTierFast), serviceMultiplier);
 
-    profitMarginNormal,
-    profitMarginFast,
-    profitMarginToday,
-
-    roiNormal,
-    roiFast,
-    roiToday
+  const result = {
+    salePrice, commissionRate, shippingType,
+    invoiceNet: amount(invoiceNet), vatSale: amount(saleVat),
+    fullProductCost: amount(product.gross), vatProduct: amount(product.vat),
+    fullCommissionCost: commission / 100, vatCommission: amount(commissionVat),
+    fullNormalShippingCost: amount(standardShipping.gross), vatNormalShipping: amount(standardShipping.vat),
+    fullFastShippingCost: amount(fastShipping.gross), vatFastShipping: amount(fastShipping.vat),
+    fullNormalTransactionCost: amount(standardFee.gross), vatNormalTransaction: amount(standardFee.vat),
+    fullFastTransactionCost: amount(todayFee.gross), vatFastTransaction: amount(todayFee.vat)
   };
+
+  function setScenario(mode, shipping, fee) {
+    const payout = sale - commission - shipping.gross - fee.gross;
+    const profit = invoiceNet - commissionNet - shipping.net - fee.net - product.net;
+    result["amountToDeposited" + mode] = amount(payout);
+    result["totalVat" + mode] = amount(saleVat - commissionVat - shipping.vat - fee.vat - product.vat);
+    result["netProfit" + mode] = amount(profit);
+    result["profitMargin" + mode] = (profit * 100 / sale).toFixed(2);
+    result["roi" + mode] = product.gross ? (profit * 100 / product.gross).toFixed(2) : null;
+  }
+  setScenario("Normal", standardShipping, standardFee);
+  setScenario("Fast", fastShipping, standardFee);
+  setScenario("Today", fastShipping, todayFee);
+  return result;
 }
