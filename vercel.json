@@ -1,3 +1,9 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/hesapla", "destination": "/", "permanent": true },
+    { "source": "/hesapla.html", "destination": "/", "permanent": true },
+    { "source": "/aylikhesapla", "destination": "/", "permanent": true },
+    { "source": "/aylikhesapla.html", "destination": "/", "permanent": true }
+  ]
 }
