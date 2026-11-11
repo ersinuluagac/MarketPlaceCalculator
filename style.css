@@ -65,16 +65,24 @@ button:hover { border-color: var(--muted); }
 .amount { color: var(--accent); font-size: clamp(2.5rem,5vw,4rem); font-weight: 650; line-height: 1.15; letter-spacing: -.05em; margin: 10px 0; overflow-wrap: anywhere; }
 .amount.loss { color: #ffc1ad; }
 #context { font-size: .9rem; line-height: 1.5; color: #dbdbdf; margin: 0; }
-#report { padding: 20px; }
+#report { padding: 20px; container-type: inline-size; }
 .scenario { max-width: 100%; }
-.metrics { display: flex; flex-wrap: wrap; gap: 18px; margin: 22px 0; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.metrics > div, .breakdown { border: 1px solid var(--line); border-radius: 10px; background: var(--field); }
+.metrics > div { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; padding: 12px; }
+.metrics dd { margin: 0; font-size: 1.06rem; overflow-wrap: anywhere; }
+@container (max-width: 360px) {
+  .metrics { grid-template-columns: 1fr; gap: 6px; }
+  .metrics > div { flex-direction: row; align-items: baseline; padding: 10px 12px; }
+}
 dt { font-size: .84rem; color: var(--muted); }
 dd { margin: 4px 0 0; font-weight: 650; font-variant-numeric: tabular-nums; }
 summary { cursor: pointer; padding: 13px 0; font-weight: 650; }
 #detail { border-top: 1px solid var(--line); }
 .note, #tariffDate { color: var(--muted); font-size: .84rem; line-height: 1.5; margin-bottom: 0; }
 #theme[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
-.breakdown { margin: 0; }
+.breakdown { padding: 12px 14px; }
+#breakdown { display: grid; gap: 10px; }
 .breakdown div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-block: 5px; }
 .breakdown dd { text-align: right; }
 .history { margin-top: 14px; padding: 0 20px; }
@@ -93,7 +101,7 @@ footer a { color: inherit; padding-block: 8px; }
   .fields small { display: block; }
   .fields { align-items: end; }
 }
-.breakdown h3 { margin: 12px 0 4px; font-size: .94rem; }
-.breakdown dl { margin: 0 0 12px; }
+.breakdown h3 { margin: 0 0 8px; font-size: .94rem; }
+.breakdown dl { margin: 0; }
 .breakdown .subtotal { border-top: 1px solid var(--line); margin-top: 3px; }
 .breakdown .subtotal dt { color: var(--ink); font-weight: 650; }
