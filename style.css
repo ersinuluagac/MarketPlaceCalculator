@@ -119,6 +119,11 @@ footer a { color: inherit; padding-block: 8px; }
 .sales table { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
 .sales th, .sales td { padding: 10px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .sales th { background: var(--field); }
+.sales table small { display: block; margin-top: 4px; }
+.sales table input, .sales table select { width: 85px; border: 1px solid var(--line); border-radius: 6px; padding: 6px; margin: 0; height: 40px; }
+.sales .tax-toggle { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.sales .tax-toggle input { width: 18px; height: 18px; }
+.sales #taxNote a { color: inherit; }
 .sales th:first-child, .sales td:first-child { min-width: 150px; white-space: normal; text-align: left; }
 @media (max-width: 480px) {
   .bar:has(.tool-nav) { flex-wrap: wrap; padding-block: 8px; }
