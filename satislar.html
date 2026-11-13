@@ -14,10 +14,29 @@
     <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Dönem boyunca satışların, iadelerin ve kesintilerin ürün kârına etkisini görün.</p></div>
     <details class="card account" id="costAccount" hidden>
       <summary id="accountTitle">Giriş yap ve alış fiyatlarını hatırla</summary>
-      <form id="loginForm"><label>E-posta adresi<input type="email" name="email" autocomplete="email" required></label>
-        <button type="submit">Giriş bağlantısı gönder</button></form>
-      <button type="button" id="logout" hidden>Çıkış yap</button>
-      <p id="accountMessage" role="status"></p><button type="button" id="reloadCosts" hidden>Tekrar yükle</button>
+      <div id="guestAccount">
+        <form id="loginForm" method="post">
+          <label>E-posta adresi<input type="email" name="email" autocomplete="username" required></label>
+          <label id="passwordLabel"><span>Şifre</span><input type="password" name="password" autocomplete="current-password" required></label>
+          <button type="submit" id="authSubmit" class="auth-primary">Giriş yap</button>
+        </form>
+        <div class="auth-actions">
+          <button type="button" id="showSignup">Hesap oluştur</button>
+          <button type="button" id="showReset">Şifremi unuttum</button>
+          <button type="button" id="showLogin" hidden>Girişe dön</button>
+        </div>
+      </div>
+      <div id="memberActions" class="auth-actions" hidden>
+        <button type="button" id="showSetPassword">Şifre belirle</button>
+        <button type="button" id="logout">Çıkış yap</button>
+      </div>
+      <form id="passwordForm" method="post" hidden>
+        <label>Yeni şifre<input type="password" name="password" autocomplete="new-password" required></label>
+        <button type="submit" class="auth-primary">Şifreyi kaydet</button>
+        <button type="button" id="cancelPassword">Vazgeç</button>
+      </form>
+      <p id="accountMessage" role="status"></p>
+      <p id="priceLoadMessage" role="status"></p><button type="button" id="reloadCosts" hidden>Tekrar yükle</button>
     </details>
     <dialog id="costEditor" class="cost-editor" aria-labelledby="editorTitle">
       <form id="costForm">

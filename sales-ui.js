@@ -209,7 +209,7 @@ if (location.protocol === "https:" || location.protocol === "http:") {
     saveAccountCost = await connectCostAccount(accountChanged);
   }).catch(() => {
     get("costAccount").hidden = false;
-    get("loginForm").hidden = true;
+    get("guestAccount").hidden = true;
     get("accountMessage").textContent = "Giriş yüklenemedi. Sayfayı yenileyebilir veya raporu misafir olarak kullanabilirsiniz.";
   });
 }
