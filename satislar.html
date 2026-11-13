@@ -12,6 +12,27 @@
   <header class="top"><div class="wrap bar"><a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a><a href="/" class="tool-link">Tek ürün hesapla</a></div></header>
   <main class="wrap sales">
     <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Dönem boyunca satışların, iadelerin ve kesintilerin ürün kârına etkisini görün.</p></div>
+    <details class="card account" id="costAccount" hidden>
+      <summary id="accountTitle">Giriş yap ve alış fiyatlarını hatırla</summary>
+      <form id="loginForm"><label>E-posta adresi<input type="email" name="email" autocomplete="email" required></label>
+        <button type="submit">Giriş bağlantısı gönder</button></form>
+      <button type="button" id="logout" hidden>Çıkış yap</button>
+      <p id="accountMessage" role="status"></p><button type="button" id="reloadCosts" hidden>Tekrar yükle</button>
+    </details>
+    <dialog id="costEditor" class="cost-editor" aria-labelledby="editorTitle">
+      <form id="costForm">
+        <h2 id="editorTitle">Alış fiyatı kaydet</h2>
+        <p id="editorName"></p>
+        <label>Ürün kodu<select name="product"></select></label>
+        <label>Geçerlilik başlangıcı<input type="date" name="day" required></label>
+        <p class="note" id="priceDates"></p>
+        <p class="note">Fiyat bu tarihten sonraki ilk fiyat değişikliğine kadar geçerlidir. Aynı tarihi seçerseniz o günün kaydı güncellenir.</p>
+        <label>Birim alış (KDV hariç, TL)<input type="number" name="cost" min="0" max="9999999999.99" step="0.01" inputmode="decimal" required></label>
+        <label>KDV oranı<select name="vat" required><option value="">Seçin</option><option value="0">%0</option><option value="1">%1</option><option value="10">%10</option><option value="20">%20</option></select></label>
+        <p id="editorStatus" role="status"></p>
+        <button type="button" id="cancelCost">Vazgeç</button> <button type="submit" class="primary">Kaydet</button>
+      </form>
+    </dialog>
     <section class="card">
       <label for="file">Sipariş ve finans listeleri</label>
       <p class="note">Aynı döneme ait iki Excel dosyasını birlikte veya sırayla seçin. Listeler sütun başlıklarından tanınır. İki listeyi içeren tek dosya da kullanabilirsiniz.</p>

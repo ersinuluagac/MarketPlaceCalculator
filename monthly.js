@@ -45,14 +45,48 @@ function number(value, label) {
 const cents = (value, label) => Math.round(number(value, label) * 100);
 const id = value => String(value ?? "").trim();
 
+function orderDay(value, date1904) {
+  if (typeof value === "number" && date1904) value += 1462;
+  if (typeof value === "number" && Number.isFinite(value) && value >= 61 && value < 2958466)
+    return new Date(Date.UTC(1899, 11, 30) + Math.floor(value) * 86400000).toISOString().slice(0, 10);
+  const parts = id(value).split(/[ T]/)[0];
+  const local = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(parts);
+  const iso = local ? local[3] + "-" + local[2].padStart(2, "0") + "-" + local[1].padStart(2, "0") : parts;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const date = new Date(iso + "T00:00:00Z");
+  return Number.isFinite(+date) && date.toISOString().startsWith(iso) ? iso : "";
+}
+
 // Monetary inputs and outputs are in kuruş. A returned item goes back into stock.
 export function productEarnings(product, costCents, vatPercent) {
   if (product.incomplete || !product.profitReady || product.keptQty == null ||
       !Number.isSafeInteger(costCents) || costCents < 0 || ![0, 1, 10, 20].includes(vatPercent)) return null;
-  const salesVat = product.domesticSales * vatPercent / (100 + vatPercent);
+  return profitAfterCosts(product, product.keptQty * costCents, product.domesticSales * vatPercent / (100 + vatPercent));
+}
+
+function profitAfterCosts(product, purchases, salesVat) {
   const serviceVat = product.services * 20 / 120; // Expenses are signed (normally negative).
-  const profit = Math.round(product.net - salesVat - serviceVat - product.keptQty * costCents);
+  const profit = Math.round(product.net - salesVat - serviceVat - purchases);
   return {profit, profitPerUnit: product.keptQty ? profit / product.keptQty : null};
+}
+
+// Each list is in descending effective-date order.
+export function historicalEarnings(product, history) {
+  let purchases = 0, salesVat = 0, taxBase = 0;
+  const used = new Map();
+  for (const line of product.costLines) {
+    if (!line.qty && !line.sales && !line.taxGross) continue;
+    const rate = line.day && history.get(line.productKey)?.find(record => record.valid_from <= line.day);
+    if (!rate) return null;
+    purchases += line.qty * rate.cost_cents;
+    salesVat += line.sales * rate.vat_rate / (100 + rate.vat_rate);
+    taxBase += line.taxGross * 100 / (100 + rate.vat_rate);
+    used.set(rate.cost_cents + "/" + rate.vat_rate, rate);
+  }
+  if (!product.costLines.length) return null;
+  const earnings = product.profitReady && !product.incomplete && product.keptQty != null
+    ? profitAfterCosts(product, purchases, salesVat) : null;
+  return {earnings, rates: [...used.values()], tax: Math.round(taxBase / 100)};
 }
 
 const optionalCents = (v, label) => v == null || v === "" ? null : cents(v, label);
@@ -75,14 +109,14 @@ function split(amount, weights) {
   });
 }
 
-function readFinances(rows) {
+function readFinances(rows, date1904) {
   const optional = ["Komisyon/Yurt Dışı Stok Destek Bedeli", "İade Kargo Bedeli", "Ülke", "Sipariş Statüsü",
-    "İade", "İptal", "Ödeme Yöntemi", "Ürün Adedi", "Sipariş Tutarı", "İndirim", "Ceza Bedeli"];
+    "İade", "İptal", "Ödeme Yöntemi", "Ürün Adedi", "Sipariş Tutarı", "İndirim", "Ceza Bedeli", "Sipariş Tarihi"];
   const finance = new Map();
   for (const [key, net, cargo, fee, commission, returnCargo, country, status, refund, cancel,
-    payment, qty, gross, discount, penalty] of rowsWithHeaders(rows, financeHeaders, "Finans", optional)) {
+    payment, qty, gross, discount, penalty, date] of rowsWithHeaders(rows, financeHeaders, "Finans", optional)) {
     if (!id(key) || finance.has(id(key))) throw Error("Finansta boş veya tekrarlanan sipariş numarası var. Her sipariş için tek finans özeti gerekiyor.");
-    finance.set(id(key), { net: cents(net, "Net Tutar"), cargo: cents(cargo, "Gönderi Kargo Bedeli"),
+    finance.set(id(key), { day: orderDay(date, date1904), net: cents(net, "Net Tutar"), cargo: cents(cargo, "Gönderi Kargo Bedeli"),
       fee: cents(fee, "Platform Hizmet Bedeli"), commission: optionalCents(commission, "Komisyon"),
       returnCargo: optionalCents(returnCargo, "İade Kargo Bedeli"), penalty: optionalCents(penalty, "Ceza Bedeli"),
       country: headerKey(country), status: headerKey(status), payment, qty: id(qty) ? number(qty, "Ürün Adedi") : null,
@@ -96,7 +130,7 @@ function getProduct(products, line, groupBy) {
   const key = groupBy === "sku" ? (line.sku ? "sku:" + line.sku : "name:" + line.name) : line.name;
   if (!products.has(key)) products.set(key, {key, sku: line.sku, name: line.name, qty: 0, keptQty: 0,
     unknownQty: 0, incomplete: false, gross: 0, refund: 0, cargo: 0, returnCargo: 0, commission: 0,
-    fee: 0, penalty: 0, net: 0, taxGross: 0, taxQty: 0, domesticSales: 0, services: 0, profitReady: true});
+    fee: 0, penalty: 0, net: 0, taxGross: 0, taxQty: 0, domesticSales: 0, services: 0, profitReady: true, costLines: []});
   return products.get(key);
 }
 
@@ -188,10 +222,14 @@ function allocateOrder(lines, entry, products, totals) {
     p.profitReady &&= Boolean(canEstimate);
     if (entry.country === "türkiye") p.domesticSales += sales[i];
     p.services += shipping[i] + returnCargo[i] + commission[i] + fees[i];
+    const costLine = {productKey: line.productKey, day: entry.day || line.day, qty: returned ? line.qty - returned.qty[i] : 0,
+      sales: entry.country === "türkiye" ? sales[i] : 0, taxGross: 0};
+    p.costLines.push(costLine);
     if (identified && entry.country === "türkiye" && entry.status === "teslim edildi" && !entry.refund && !entry.cancel &&
         ["Kredi Kartı", "Alışveriş Kredisi"].includes(entry.payment) && line.status === "teslim edildi" && line.invoice != null && line.invoice >= 0) {
       p.taxQty += line.qty;
       p.taxGross += line.invoice;
+      costLine.taxGross = line.invoice;
     }
   }
   totals.matched++;
@@ -203,17 +241,18 @@ function allocateOrder(lines, entry, products, totals) {
   return true;
 }
 
-export function monthlyReport(productRows, financeRows, groupBy = "name") {
+export function monthlyReport(productRows, financeRows, groupBy = "name", dateSystems = {}) {
   const orders = new Map();
-  for (const [key, sku, name, quantity, sales, invoice, status] of rowsWithHeaders(productRows, productHeaders, "Sipariş", ["Faturalanacak Tutar", "Sipariş Statüsü"])) {
+  for (const [key, sku, name, quantity, sales, invoice, status, barcode, date] of rowsWithHeaders(productRows, productHeaders, "Sipariş", ["Faturalanacak Tutar", "Sipariş Statüsü", "Barkod", "Sipariş Tarihi"])) {
     if (!id(key) || !id(name)) throw Error("Sipariş numarası veya ürün adı eksik.");
     const qty = number(quantity, "Adet");
     const gross = cents(sales, "Satış Tutarı");
     if (!Number.isSafeInteger(qty) || qty < 1 || gross < 0) throw Error("Adet veya satış tutarı dağıtıma uygun değil.");
     if (!orders.has(id(key))) orders.set(id(key), []);
-    orders.get(id(key)).push({sku: id(sku), name: id(name), qty, gross, invoice: optionalCents(invoice, "Faturalanacak Tutar"), status: headerKey(status)});
+    const productKey = id(barcode) ? "barcode:" + id(barcode) : (id(sku) ? "sku:" + id(sku) : "");
+    orders.get(id(key)).push({sku: id(sku), name: id(name), productKey, day: orderDay(date, dateSystems.products), qty, gross, invoice: optionalCents(invoice, "Faturalanacak Tutar"), status: headerKey(status)});
   }
-  const finance = readFinances(financeRows);
+  const finance = readFinances(financeRows, dateSystems.finances);
   const products = new Map();
   const totals = {matched: 0, missingFinance: 0, missingProduct: 0, unallocated: 0, incomplete: 0,
     ambiguous: 0, net: 0, unmatchedNet: 0, fee: 0, cargo: 0, qty: 0};

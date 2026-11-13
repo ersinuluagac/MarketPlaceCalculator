@@ -1,11 +1,13 @@
-import { listRoles, monthlyReport, productEarnings } from "./monthly.js";
+import { listRoles, monthlyReport, productEarnings, historicalEarnings } from "./monthly.js";
 
 const get = id => document.getElementById(id);
 const money = new Intl.NumberFormat("tr-TR", {style: "currency", currency: "TRY"});
 const price = cents => money.format(cents / 100);
 const count = value => value.toLocaleString("tr-TR");
 let input = {};
+let report, reportGroup;
 const costs = new Map();
+let accountId = null, history = null, saveAccountCost;
 const labels = { products: "Sipariş listesi", finances: "Finans listesi" };
 
 try {
@@ -26,9 +28,59 @@ function detail(cell, text) {
   cell.append(note);
 }
 
+function editCost(p, keys, draft) {
+  const editor = get("costEditor"), form = get("costForm");
+  const {product, day, cost, vat} = form.elements;
+  const owner = accountId;
+  get("editorName").textContent = p.name;
+  get("editorStatus").textContent = "";
+  product.replaceChildren(...keys.map(key => new Option(key.startsWith("sku:") ? "Stok · " + key.slice(4) : "Barkod · " + key.slice(8), key)));
+  function fill() {
+    const rate = history?.get(product.value)?.find(r => r.valid_from <= day.value);
+    cost.value = rate ? rate.cost_cents / 100 : draft.cost;
+    vat.value = rate ? rate.vat_rate : draft.vat;
+  }
+  function chooseProduct() {
+    const days = p.costLines.filter(l => l.productKey === product.value && l.day).map(l => l.day).sort();
+    const dates = history?.get(product.value) || [];
+    const today = new Date().toLocaleDateString("sv-SE");
+    day.value = days[0] && !dates.some(r => r.valid_from <= days[0]) ? days[0] : today;
+    get("priceDates").textContent = dates.length ? "Kayıtlı başlangıç tarihleri: " +
+      dates.map(r => r.valid_from.split("-").reverse().join(".")).join(", ") : "";
+    fill();
+  }
+  product.onchange = chooseProduct;
+  day.onchange = fill;
+  chooseProduct();
+  const submit = form.querySelector("[type=submit]");
+  const editSession = Symbol();
+  form.editSession = editSession;
+  submit.disabled = false;
+  form.onsubmit = async event => {
+    event.preventDefault();
+    if (submit.disabled) return;
+    submit.disabled = true;
+    get("editorStatus").textContent = "Kaydediliyor…";
+    try {
+      await saveAccountCost({product_key: product.value, valid_from: day.value,
+        cost_cents: Math.round(cost.valueAsNumber * 100), vat_rate: Number(vat.value)}, owner);
+      if (form.editSession === editSession) editor.close();
+    } catch (error) { if (form.editSession === editSession) get("editorStatus").textContent = error.message; }
+    finally { if (form.editSession === editSession) submit.disabled = false; }
+  };
+  editor.showModal();
+}
+
+get("cancelCost").addEventListener("click", () => get("costEditor").close());
+
 function render() {
   const mode = get("group").value;
-  const { totals, products } = monthlyReport(input.products.rows, input.finances.rows, mode);
+  if (!report || mode !== reportGroup) {
+    report = monthlyReport(input.products.rows, input.finances.rows, mode,
+      {products: input.products.date1904, finances: input.finances.date1904});
+    reportGroup = mode;
+  }
+  const { totals, products } = report;
   get("orders").textContent = count(totals.matched);
   get("qty").textContent = count(totals.qty);
   get("net").textContent = price(totals.net);
@@ -72,13 +124,32 @@ function render() {
     cost.placeholder = "₺";
     cost.setAttribute("aria-label", label + " adet alış fiyatı");
     cost.value = saved.cost;
-    row.insertCell().append(cost);
+    const costCell = row.insertCell();
+    costCell.append(cost);
     const vat = document.createElement("select");
     vat.setAttribute("aria-label", label + " KDV oranı");
     vat.add(new Option("Seçin", ""));
     for (const rate of [0, 1, 10, 20]) vat.add(new Option("%" + rate, String(rate)));
     vat.value = saved.vat;
-    row.insertCell().append(vat);
+    const vatCell = row.insertCell();
+    vatCell.append(vat);
+    const keys = [...new Set(p.costLines.map(line => line.productKey).filter(Boolean))];
+    const useAccount = Boolean(accountId && keys.length);
+    const recorded = useAccount && history ? historicalEarnings(p, history) : null;
+    if (useAccount) {
+      const rate = recorded?.rates.length === 1 ? recorded.rates[0] : null;
+      const variable = recorded?.rates.length > 1 ? "Tarihe göre" : "—";
+      costCell.textContent = rate ? price(rate.cost_cents) : variable;
+      vatCell.textContent = rate ? "%" + rate.vat_rate : variable;
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "edit-cost";
+      edit.textContent = keys.some(key => history?.has(key)) ? "Düzenle" : "Fiyat gir";
+      edit.setAttribute("aria-label", label + " alış fiyatını düzenle");
+      edit.disabled = !history;
+      edit.addEventListener("click", () => editCost(p, keys, saved));
+      costCell.append(edit);
+    }
     const tax = row.insertCell();
     tax.hidden = !showTax;
     const profit = row.insertCell();
@@ -87,14 +158,17 @@ function render() {
       const hasVat = vat.value !== "";
       const factor = 1 + Number(vat.value) / 100;
       const ready = hasVat && cost.value !== "" && cost.validity.valid;
-      const earnings = ready ? productEarnings(p, Math.round(cost.valueAsNumber * 100), Number(vat.value)) : null;
+      const earnings = useAccount ? recorded?.earnings :
+        (ready ? productEarnings(p, Math.round(cost.valueAsNumber * 100), Number(vat.value)) : null);
       profit.textContent = earnings?.profitPerUnit == null ? "—" : price(earnings.profitPerUnit);
       total.textContent = earnings?.profit == null ? "—" : price(earnings.profit);
       if (p.incomplete) detail(total, "Ürüne dağıtılamayan sipariş var");
       else if (p.keptQty == null) detail(total, "İade adedi belirsiz");
+      else if (useAccount && history && !recorded) detail(total, "Sipariş tarihinde geçerli fiyat veya ürün kodu eksik");
       else if (ready && earnings?.profit == null) detail(total, "Eksik veri");
       if (showTax) {
-        tax.textContent = hasVat && p.taxQty ? price(Math.round(p.taxGross / factor / 100)) : "—";
+        const amount = useAccount ? recorded?.tax : (hasVat ? Math.round(p.taxGross / factor / 100) : null);
+        tax.textContent = amount != null && p.taxQty ? price(amount) : "—";
         if (!unallocated) detail(tax, count(p.taxQty) + " adet kapsamda");
       }
     }
@@ -120,6 +194,7 @@ function showSources() {
 }
 
 function reset() {
+  report = null;
   costs.clear();
   input = {};
   get("results").hidden = true;
@@ -127,6 +202,26 @@ function reset() {
   get("file").value = "";
   get("status").textContent = "";
   showSources();
+}
+
+if (location.protocol === "https:" || location.protocol === "http:") {
+  import("./cost-account.js").then(async ({connectCostAccount}) => {
+    saveAccountCost = await connectCostAccount(accountChanged);
+  }).catch(() => {
+    get("costAccount").hidden = false;
+    get("loginForm").hidden = true;
+    get("accountMessage").textContent = "Giriş yüklenemedi. Sayfayı yenileyebilir veya raporu misafir olarak kullanabilirsiniz.";
+  });
+}
+
+function accountChanged(owner, records) {
+  if (owner !== accountId) {
+    costs.clear();
+    get("costEditor").close();
+  }
+  accountId = owner;
+  history = records;
+  if (input.products && input.finances) render();
 }
 
 async function readLists(file) {
@@ -141,7 +236,7 @@ async function readLists(file) {
     const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, blankrows: false});
     for (const role of listRoles(rows)) {
       if (found[role]) throw Error(file.name + " içinde birden fazla " + labels[role].toLocaleLowerCase("tr") + " bulundu.");
-      found[role] = { rows, name: file.name + " · " + name };
+      found[role] = { rows, date1904: book.Workbook?.WBProps?.date1904, name: file.name + " · " + name };
     }
   }
   if (!Object.keys(found).length) {
@@ -171,6 +266,7 @@ get("file").addEventListener("change", async event => {
       }
     }
     Object.assign(input, batch);
+    report = null;
     if (input.products && input.finances) {
       render();
       get("status").textContent = "Listeler sipariş numarasıyla eşleştirildi.";

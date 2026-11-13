@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {monthlyReport, productEarnings} from "../monthly.js";
+import {monthlyReport, productEarnings, historicalEarnings} from "../monthly.js";
 
 const orderHeaders = ["Sipariş Numarası", "Stok Kodu", "Ürün Adı", "Adet", "Satış Tutarı", "Faturalanacak Tutar", "Sipariş Statüsü"];
 const financeHeaders = ["Sipariş No", "Net Tutar", "Gönderi Kargo Bedeli", "Platform Hizmet Bedeli", "Komisyon/Yurt Dışı Stok Destek Bedeli",
@@ -12,6 +12,42 @@ function finance(key, gross, qty, {refund = 0, cancel = 0, cargo = 0, fee = 0, c
   return [key, net, cargo, fee, commission, returnCargo, country, status, refund, cancel, qty, gross, discount, penalty];
 }
 const report = (lines, finances) => monthlyReport([orderHeaders, ...lines], [financeHeaders, ...finances]);
+
+test("dated costs follow each barcode and each order day across a price and VAT change", () => {
+  const productRows = [[...orderHeaders, "Barkod", "Sipariş Tarihi"]];
+  const financeRows = [[...financeHeaders, "Sipariş Tarihi", "Ödeme Yöntemi"]];
+  for (const [key, barcode, day, amount] of [["A","001","2026-09-01",120], ["B","001","15.09.2026 14:00",110], ["C","002","",120]]) {
+    productRows.push([...line(key, "Aynı ürün", 1, amount), barcode, day]);
+    financeRows.push([...finance(key, amount, 1), key === "C" ? "2026-09-30" : "", "Kredi Kartı"]);
+  }
+  const {products: [p]} = monthlyReport(productRows, financeRows);
+  const rate = (valid_from, cost_cents, vat_rate) => ({valid_from, cost_cents, vat_rate});
+  const history = new Map([["barcode:001", [rate("2026-09-15", 4000, 10), rate("2026-09-01", 2000, 20)]],
+    ["barcode:002", [rate("2026-01-01", 5000, 20)]]]);
+  const result = historicalEarnings(p, history);
+  assert.deepEqual(result.earnings, {profit: 19000, profitPerUnit: 19000 / 3});
+  assert.equal(result.tax, 300);
+  assert.equal(result.rates.length, 3);
+  history.get("barcode:001").pop();
+  assert.equal(historicalEarnings(p, history), null);
+});
+
+test("SKU fallback supports both Excel epochs and never supplies a price for an unknown day", () => {
+  const serial = (Date.UTC(2026, 8, 1) - Date.UTC(1899, 11, 30)) / 86400000;
+  const prices = new Map([["sku:A", [{valid_from:"2026-09-01", cost_cents:1200, vat_rate:20}]]]);
+  const get = (day, date1904) => monthlyReport([[...orderHeaders, "Sipariş Tarihi"], [...line("1", "A", 1, 120), day]],
+    [financeHeaders, finance("1",120,1)], "name", {products:date1904}).products[0];
+  for (const [day, mode] of [[serial + 0.8, false], [serial - 1462, true]]) {
+    const p = get(day, mode);
+    assert.deepEqual(historicalEarnings(p, prices).earnings, productEarnings(p, 1200, 20));
+  }
+  assert.equal(historicalEarnings(get("31.02.2026", false), prices), null);
+});
+
+test("a fully returned sale still shows its freight loss without a purchase price", () => {
+  const {products:[p]} = report([line("1","A",1,120)], [finance("1",120,1,{refund:-120,returnCargo:-24})]);
+  assert.deepEqual(historicalEarnings(p, new Map()).earnings, {profit:-2000, profitPerUnit:null});
+});
 
 test("a returned sale contributes its signed freight, fee and penalty without consuming inventory", () => {
   const {products: [p]} = report([line("1", "A", 3, 360), line("2", "A", 1, 120, 114)], [
