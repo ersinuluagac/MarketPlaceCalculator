@@ -13,9 +13,12 @@
   <main class="wrap sales">
     <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Kesintilerden sonra her üründe adet başına ne kaldığını görün.</p></div>
     <section class="card">
-      <label for="file">Aylık Excel dosyası</label>
-      <p class="note">Giris_Urunler ve Giris_Finans sayfalarını içeren .xlsx dosyasını seçin. Veriler yalnızca bu cihazda işlenir.</p>
-      <input id="file" type="file" accept=".xlsx">
+      <label for="file">Sipariş ve finans listeleri</label>
+      <p class="note">Aynı döneme ait iki Excel dosyasını birlikte veya sırayla seçin. Listeler sütun başlıklarından tanınır. İki listeyi içeren tek dosya da kullanabilirsiniz.</p>
+      <input id="file" type="file" accept=".xlsx" multiple>
+      <ul aria-label="Seçilen listeler"><li id="productsSource">Sipariş listesi bekleniyor</li><li id="financesSource">Finans listesi bekleniyor</li></ul>
+      <button type="button" id="clearFiles" hidden>Listeleri temizle</button>
+      <p class="note">Dosyalar yalnızca bu cihazda işlenir.</p>
       <p id="status" role="status"></p>
     </section>
     <section id="results" class="card" hidden>

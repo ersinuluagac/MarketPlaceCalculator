@@ -1,11 +1,11 @@
-import { monthlyReport } from "./monthly.js";
+import { listRoles, monthlyReport } from "./monthly.js";
 
 const get = id => document.getElementById(id);
 const money = new Intl.NumberFormat("tr-TR", {style: "currency", currency: "TRY"});
 const price = cents => money.format(cents / 100);
 const count = value => value.toLocaleString("tr-TR");
-let input;
-let generation = 0;
+let input = {};
+const labels = { products: "Sipariş listesi", finances: "Finans listesi" };
 
 try {
   document.documentElement.dataset.theme = localStorage.getItem("calculator_theme") ||
@@ -14,7 +14,7 @@ try {
 
 function render() {
   const mode = get("group").value;
-  const { totals, products } = monthlyReport(input.products, input.finances, mode);
+  const { totals, products } = monthlyReport(input.products.rows, input.finances.rows, mode);
   get("orders").textContent = count(totals.matched);
   get("qty").textContent = count(totals.qty);
   get("net").textContent = price(totals.net);
@@ -36,29 +36,76 @@ function render() {
   get("results").hidden = false;
 }
 
-get("group").addEventListener("change", () => { if (input) render(); });
-get("file").addEventListener("change", async event => {
-  const ticket = ++generation;
-  const file = event.target.files[0];
+function showSources() {
+  for (const [role, label] of Object.entries(labels)) {
+    const source = input[role];
+    get(role + "Source").textContent = source ? label + ": " + source.name : label + " bekleniyor";
+  }
+  get("clearFiles").hidden = !Object.keys(input).length;
+}
+
+function reset() {
+  input = {};
   get("results").hidden = true;
-  input = null;
-  get("status").textContent = file ? "Dosya okunuyor…" : "";
-  if (!file) return;
-  try {
-    const bytes = await file.arrayBuffer();
-    if (ticket !== generation) return;
-    if (new DataView(bytes).byteLength < 4 || new DataView(bytes).getUint32(0) !== 0x504b0304)
-      throw Error("Dosya geçerli bir .xlsx çalışma kitabı değil.");
-    const book = XLSX.read(bytes, {type: "array", sheets: ["Giris_Urunler", "Giris_Finans"], cellFormula: false, dense: true});
-    function sheetRows(name) {
-      if (!book.Sheets[name]) throw Error(name + " sayfası bulunamadı.");
-      return XLSX.utils.sheet_to_json(book.Sheets[name], {header: 1, blankrows: false});
+  get("items").replaceChildren();
+  get("file").value = "";
+  get("status").textContent = "";
+  showSources();
+}
+
+async function readLists(file) {
+  const bytes = await file.arrayBuffer();
+  if (bytes.byteLength < 4 || new DataView(bytes).getUint32(0) !== 0x504b0304)
+    throw Error(file.name + " geçerli bir .xlsx dosyası değil.");
+  const options = { type: "array", cellFormula: false, dense: true };
+  const book = XLSX.read(bytes, options);
+  const found = {};
+  for (const name of book.SheetNames) {
+    const sheet = book.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, blankrows: false});
+    for (const role of listRoles(rows)) {
+      if (found[role]) throw Error(file.name + " içinde birden fazla " + labels[role].toLocaleLowerCase("tr") + " bulundu.");
+      found[role] = { rows, name: file.name + " · " + name };
     }
-    input = {products: sheetRows("Giris_Urunler"), finances: sheetRows("Giris_Finans")};
-    render();
-    get("status").textContent = "Dosya işlendi.";
+  }
+  if (!Object.keys(found).length) {
+    throw Error(file.name + " içinde sipariş veya finans başlıkları bulunamadı. Sipariş listesinde Ürün Adı ve Satış Tutarı, finans listesinde Net Tutar ve Platform Hizmet Bedeli bulunmalı.");
+  }
+  return found;
+}
+
+get("clearFiles").addEventListener("click", reset);
+get("group").addEventListener("change", () => { if (!get("results").hidden) render(); });
+get("file").addEventListener("change", async event => {
+  const files = [...event.target.files];
+  if (!files.length) return;
+  if (input.products && input.finances) reset();
+  get("file").disabled = true;
+  get("clearFiles").disabled = true;
+  get("results").hidden = true;
+  get("status").textContent = "Listeler okunuyor…";
+  try {
+    const batch = {};
+    for (const file of files) {
+      const found = await readLists(file);
+      for (const [role, source] of Object.entries(found)) {
+        if (batch[role]) throw Error("Aynı anda iki " + labels[role].toLocaleLowerCase("tr") + " seçildi. Her türden bir liste seçin.");
+        batch[role] = source;
+      }
+    }
+    Object.assign(input, batch);
+    if (input.products && input.finances) {
+      render();
+      get("status").textContent = "Listeler sipariş numarasıyla eşleştirildi.";
+    } else {
+      get("status").textContent = input.products ? "Devam etmek için finans listesini seçin." : "Devam etmek için sipariş listesini seçin.";
+    }
   } catch (error) {
-    input = null;
     get("status").textContent = "Rapor oluşturulamadı. " + error.message;
+  } finally {
+    showSources();
+    get("file").value = "";
+    get("file").disabled = false;
+    get("clearFiles").disabled = false;
   }
 });

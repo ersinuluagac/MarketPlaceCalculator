@@ -1,10 +1,31 @@
 const productHeaders = ["Sipariş Numarası", "Stok Kodu", "Ürün Adı", "Adet", "Satış Tutarı"];
 const financeHeaders = ["Sipariş No", "Net Tutar", "Gönderi Kargo Bedeli", "Platform Hizmet Bedeli"];
 
+function headerKey(value) {
+  return String(value ?? "").normalize("NFC").trim().toLocaleLowerCase("tr").replace(/\s+/g, " ");
+}
+
+function findHeaders(rows, headers) {
+  const required = headers.map(headerKey);
+  for (const [index, row] of rows.entries()) {
+    if (row.length < required.length) continue;
+    const titles = row.map(headerKey);
+    const columns = required.map(key => titles.indexOf(key));
+    if (columns.every(column => column >= 0)) return { index, columns };
+  }
+}
+
+export function listRoles(rows) {
+  const roles = [];
+  if (findHeaders(rows, productHeaders)) roles.push("products");
+  if (findHeaders(rows, financeHeaders)) roles.push("finances");
+  return roles;
+}
+
 function rowsWithHeaders(rows, headers, sheet) {
-  const index = rows.findIndex(row => headers.every(title => row.includes(title)));
-  if (index < 0) throw Error(sheet + " sayfasında beklenen sütunlar bulunamadı: " + headers.join(", "));
-  const columns = headers.map(title => rows[index].indexOf(title));
+  const match = findHeaders(rows, headers);
+  if (!match) throw Error(sheet + " listesinde beklenen sütunlar bulunamadı: " + headers.join(", "));
+  const {index, columns} = match;
   return rows.slice(index + 1)
     .map(row => columns.map(i => row[i]))
     .filter(row => row.some(value => value != null && value !== ""));
