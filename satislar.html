@@ -27,12 +27,33 @@
       <p class="note" id="coverage"></p>
       <h2>Ürün bazında ciro ve kesintiler</h2>
       <label>Gruplama<select id="group"><option value="name">Ürün adına göre</option><option value="sku">Stok koduna göre</option></select></label>
-      <p class="note">Her sütunda üstte toplam, altta adet başına tutar gösterilir. Ciro indirim öncesi satış tutarıdır. Kesintiler sepet içindeki satış payına göre dağıtılır. Rapordaki net tutar indirim, iade ve diğer hareketleri de içerir.</p>
+      <p class="note">Ciro, kesintiler ve net ödemede üstte toplam, altta adet başına tutar gösterilir. Ciro indirim öncesidir. Kesintiler sepetteki satış payına göre dağıtılır. Net ödeme, finans raporundaki indirim, iade ve diğer hareketleri içerir.</p>
       <label class="tax-toggle"><input id="withholding" type="checkbox"> %1 e-ticaret stopaj tahminini göster</label>
       <p id="taxNote" class="note" hidden>Tevkifat kapsamındaki satıcı için tahmin: KDV hariç faturalanacak tutarın %1’i. Yalnızca Türkiye’de teslim edilmiş, iade veya iptal hareketi olmayan, kart ya da alışveriş kredisiyle ödenmiş satırlar kapsanır. Tahmin net tutardan düşülmez. <a href="https://gib.gov.tr/mevzuat/kanun/433/teblig/6659">GİB açıklaması</a></p>
-      <p class="note">Alış fiyatını adet başına KDV hariç girin. Ürün için tek alış ve satış KDV oranı kullanılır. Alış sonrası net, rapor netinden KDV dahil alış ödemesi çıkarılınca kalan tutardır. Tahmini kârda ürün KDV’si ve hizmetlerin %20 KDV’si ayrıştırılır. Tahmini kâr ortalamasına yalnızca faturası kesintilerle tam uzlaşan yurt içi teslim satışları girer. Kapsam daraldığında adet sayısı gösterilir. Girişler açık rapor boyunca saklanır.</p>
+      <p class="note">Birim alış fiyatını KDV hariç girin ve ürünün KDV oranını seçin. Alış ve satışta aynı ürün KDV oranı kullanılır. Tutarlar açık rapor boyunca saklanır.</p>
+      <details class="profit-help"><summary>Kalan tutar ve kâr nasıl hesaplanır?</summary>
+        <p><strong>Kalan nakit</strong> için ürünün fatura tutarından payına düşen kesintiler ve KDV dahil alış bedeli çıkarılır. <strong>Kâr</strong> hesabında ayrıca ürüne ve hizmetlere ait KDV ayrıştırılır.</p>
+        <p>Bu üç sonuç aynı satışları kapsar. Yalnızca fatura tutarı finans kayıtlarıyla uyuşan yurt içi teslim satışları hesaba girer. Toplam kârın altında belirtilen adet, bu toplama dahil edilen miktardır.</p>
+      </details>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Ürün bazında kesintiler ve ortalama kalan tutar">
-        <table><thead><tr><th scope="col" id="keyTitle">Ürün adı</th><th scope="col">Adet</th><th scope="col">Ciro</th><th scope="col">Kargo¹</th><th scope="col">Komisyon</th><th scope="col">Hizmet bedeli</th><th scope="col">Kesintiler sonrası net</th><th scope="col">Alış / adet (KDV hariç)</th><th scope="col">KDV (%)</th><th scope="col" id="taxHead" hidden>Tahmini stopaj</th><th scope="col">Alış sonrası net / adet</th><th scope="col">Tahmini kâr / adet</th></tr></thead><tbody id="items"></tbody></table>
+        <table>
+          <thead><tr>
+            <th scope="col" id="keyTitle">Ürün adı</th>
+            <th scope="col">Adet</th>
+            <th scope="col">Ciro</th>
+            <th scope="col">Kargo¹</th>
+            <th scope="col">Komisyon</th>
+            <th scope="col">Hizmet bedeli</th>
+            <th scope="col">Net ödeme</th>
+            <th scope="col">Birim alış<small>KDV hariç</small></th>
+            <th scope="col">KDV</th>
+            <th scope="col" id="taxHead" hidden>Stopaj<small>Tahmini</small></th>
+            <th scope="col">Kalan nakit<small>Adet başına</small></th>
+            <th scope="col">Birim kâr<small>Tahmini</small></th>
+            <th scope="col">Bu üründen toplam kâr<small>Tahmini</small></th>
+          </tr></thead>
+          <tbody id="items"></tbody>
+        </table>
       </div>
       <p class="note">¹ Gönderi ve iade kargosu toplamı. “—” eksik veri veya henüz girilmemiş değer anlamına gelir.</p>
     </section>

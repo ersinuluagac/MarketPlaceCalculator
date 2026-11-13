@@ -1,4 +1,4 @@
-import { listRoles, monthlyReport } from "./monthly.js";
+import { listRoles, monthlyReport, productEarnings } from "./monthly.js";
 
 const get = id => document.getElementById(id);
 const money = new Intl.NumberFormat("tr-TR", {style: "currency", currency: "TRY"});
@@ -62,18 +62,19 @@ function render() {
     tax.hidden = !showTax;
     const remaining = row.insertCell();
     const profit = row.insertCell();
+    const total = row.insertCell();
     function update() {
       const hasVat = vat.value !== "";
       const factor = 1 + Number(vat.value) / 100;
       const ready = hasVat && cost.value !== "" && cost.validity.valid;
-      remaining.textContent = ready
-        ? price(p.net / p.qty - Math.round(Number(cost.value) * 100) * factor) : "—";
-      profit.textContent = ready && p.profitQty
-        ? price((p.profitInvoice / factor + p.profitFees / 1.20) / p.profitQty - Math.round(Number(cost.value) * 100)) : "—";
+      const earnings = ready ? productEarnings(p, Math.round(cost.valueAsNumber * 100), Number(vat.value)) : null;
+      remaining.textContent = earnings ? price(earnings.cashPerUnit) : "—";
+      profit.textContent = earnings ? price(earnings.profitPerUnit) : "—";
+      total.textContent = earnings ? price(earnings.profit) : "—";
       if (ready && p.profitQty !== p.qty) {
         const scope = document.createElement("small");
-        scope.textContent = count(p.profitQty) + " / " + count(p.qty) + " adet kapsamda";
-        profit.append(scope);
+        scope.textContent = (p.profitQty ? "Kısmi toplam · " : "") + count(p.profitQty) + " / " + count(p.qty) + " adet";
+        total.append(scope);
       }
       if (showTax) {
         tax.textContent = hasVat && p.taxQty ? price(Math.round(p.taxGross / factor / 100)) : "—";

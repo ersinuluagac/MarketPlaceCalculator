@@ -43,6 +43,20 @@ function number(value, label) {
 const cents = (value, label) => Math.round(number(value, label) * 100);
 const id = value => String(value ?? "").trim();
 
+// All monetary inputs and outputs are in kuruş. Both averages use the
+// same delivered, reconciled units; round the total before displaying it.
+export function productEarnings(product, costCents, vatPercent) {
+  const qty = product.profitQty;
+  if (!qty || !Number.isSafeInteger(costCents) || costCents < 0 ||
+      ![0, 1, 10, 20].includes(vatPercent)) return null;
+  const multiplier = 100 + vatPercent;
+  const purchaseNet = costCents * qty;
+  const purchaseGross = Math.round(purchaseNet * multiplier / 100);
+  const cash = product.profitInvoice + product.profitFees - purchaseGross;
+  const profit = Math.round(product.profitInvoice * 100 / multiplier + product.profitFees * 100 / 120 - purchaseNet);
+  return {cashPerUnit: cash / qty, profitPerUnit: profit / qty, profit};
+}
+
 export function monthlyReport(productRows, financeRows, groupBy = "name") {
   const orders = new Map();
   const finance = new Map();

@@ -107,7 +107,12 @@ footer a { color: inherit; padding-block: 8px; }
 .breakdown .subtotal dt { color: var(--ink); font-weight: 650; }
 .tool-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .tool-link { color: var(--ink); font-weight: 600; font-size: .9rem; padding-block: 10px; }
-.sales { padding-bottom: 32px; }
+.sales { width: min(1920px, calc(100% - clamp(20px, 4vw, 80px))); padding-bottom: 32px; }
+.sales > .card:first-of-type { max-width: 1080px; }
+.sales #results { padding: clamp(14px, 1.5vw, 28px); }
+.sales .note, .sales .profit-help { max-width: 100ch; }
+.profit-help { margin-top: 8px; font-size: .9rem; }
+.profit-help p { margin: 4px 0 10px; line-height: 1.5; }
 .sales .card + .card { margin-top: 16px; }
 .sales h2 { font-size: 1.15rem; margin-block: 8px 16px; }
 .sales #file { padding: 12px 0; height: auto; }
@@ -115,17 +120,21 @@ footer a { color: inherit; padding-block: 8px; }
 .sales #status:empty { display: none; }
 .sales #coverage { margin-bottom: 24px; }
 .sales select { display: block; max-width: 240px; }
-.table-scroll { overflow-x: auto; margin-top: 14px; }
-.sales table { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.sales table { width: 100%; min-width: 1370px; border-spacing: 0; font-size: .92rem; font-variant-numeric: tabular-nums; }
 .sales th, .sales td { padding: 10px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.sales th { background: var(--field); }
+.sales th { background: var(--field); white-space: normal; vertical-align: bottom; }
+.sales th small { font-weight: 450; }
+.sales td:last-child { background: var(--field); font-weight: 700; }
 .sales table small { display: block; margin-top: 4px; }
 .sales table input, .sales table select { width: 85px; border: 1px solid var(--line); border-radius: 6px; padding: 6px; margin: 0; height: 40px; }
 .sales .tax-toggle { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
 .sales .tax-toggle input { width: 18px; height: 18px; }
 .sales #taxNote a { color: inherit; }
-.sales th:first-child, .sales td:first-child { min-width: 150px; white-space: normal; text-align: left; }
+.sales th:first-child, .sales td:first-child { position: sticky; left: 0; z-index: 1; width: clamp(160px, 15vw, 300px); min-width: 160px; white-space: normal; overflow-wrap: anywhere; text-align: left; border-right: 1px solid var(--line); }
+.sales td:first-child { background: var(--paper); }
 @media (max-width: 480px) {
+  .sales th:first-child, .sales td:first-child { width: 108px; min-width: 108px; }
   .bar:has(.tool-nav) { flex-wrap: wrap; padding-block: 8px; }
   .sales .metrics { grid-template-columns: 1fr; }
 }
