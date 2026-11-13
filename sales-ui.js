@@ -17,9 +17,13 @@ function amountPair(cell, total, qty) {
   cell.replaceChildren();
   if (total == null) { cell.textContent = "—"; return; }
   cell.append(price(total));
-  const unit = document.createElement("small");
-  unit.textContent = price(total / qty) + " / adet";
-  cell.append(unit);
+  if (qty > 0) detail(cell, price(total / qty) + " / adet");
+}
+
+function detail(cell, text) {
+  const note = document.createElement("small");
+  note.textContent = text;
+  cell.append(note);
 }
 
 function render() {
@@ -28,8 +32,14 @@ function render() {
   get("orders").textContent = count(totals.matched);
   get("qty").textContent = count(totals.qty);
   get("net").textContent = price(totals.net);
-  get("coverage").textContent = "Toplamlara dahil edilmeyen siparişler: yalnız finansta " + count(totals.missingProduct)
-    + ", yalnız ürün listesinde " + count(totals.missingFinance) + ", satış toplamı sıfır " + count(totals.unallocated) + ".";
+  get("unmatchedNet").textContent = price(totals.unmatchedNet);
+  const coverage = [];
+  if (totals.missingProduct) coverage.push(count(totals.missingProduct) + " sipariş yalnızca finans listesinde yer alıyor.");
+  if (totals.missingFinance) coverage.push(count(totals.missingFinance) + " siparişin finans kaydı yok.");
+  if (totals.unallocated) coverage.push(count(totals.unallocated) + " siparişte satış tutarı sıfır olduğu için dağıtım yapılamadı.");
+  if (totals.incomplete) coverage.push(count(totals.incomplete) + " siparişte ürün satırları eksik.");
+  if (totals.ambiguous) coverage.push(count(totals.ambiguous) + " çok ürünlü siparişte iade veya iptalin hangi ürüne ait olduğu belirlenemedi. Bu siparişlerin net tutarı dağıtılamayan tutara dahil.");
+  get("coverage").textContent = coverage.join(" ");
   get("keyTitle").textContent = mode === "sku" ? "Stok kodu / ürün" : "Ürün adı";
   const body = document.createDocumentFragment();
   const showTax = get("withholding").checked;
@@ -38,9 +48,20 @@ function render() {
     const row = document.createElement("tr");
     const label = mode === "sku" && p.sku ? p.sku + " · " + p.name : p.name;
     row.insertCell().textContent = label;
-    row.insertCell().textContent = count(p.qty);
-    const cargo = p.returnCargo === null ? null : p.cargo + p.returnCargo;
-    for (const total of [p.gross, cargo, p.commission, p.fee, p.net]) amountPair(row.insertCell(), total, p.qty);
+    const quantity = row.insertCell();
+    const unallocated = p.incomplete && p.qty === 0;
+    quantity.textContent = unallocated ? "—" : count(p.qty) + " adet";
+    if (!unallocated) {
+      if (p.keptQty == null) {
+        detail(quantity, count(p.unknownQty) + " adette iade sayısı belirsiz");
+      } else {
+        detail(quantity, count(p.qty - p.keptQty) + " iade/iptal");
+        detail(quantity, count(p.keptQty) + " net satış");
+      }
+    }
+    for (const total of [p.gross, p.refund, p.cargo, p.returnCargo, p.commission, p.fee, p.penalty, p.net]) {
+      amountPair(row.insertCell(), unallocated ? null : total, p.qty);
+    }
     const costKey = mode + ":" + p.key;
     const saved = costs.get(costKey) ?? {cost: "", vat: ""};
     const cost = document.createElement("input");
@@ -60,7 +81,6 @@ function render() {
     row.insertCell().append(vat);
     const tax = row.insertCell();
     tax.hidden = !showTax;
-    const remaining = row.insertCell();
     const profit = row.insertCell();
     const total = row.insertCell();
     function update() {
@@ -68,19 +88,14 @@ function render() {
       const factor = 1 + Number(vat.value) / 100;
       const ready = hasVat && cost.value !== "" && cost.validity.valid;
       const earnings = ready ? productEarnings(p, Math.round(cost.valueAsNumber * 100), Number(vat.value)) : null;
-      remaining.textContent = earnings ? price(earnings.cashPerUnit) : "—";
-      profit.textContent = earnings ? price(earnings.profitPerUnit) : "—";
-      total.textContent = earnings ? price(earnings.profit) : "—";
-      if (ready && p.profitQty !== p.qty) {
-        const scope = document.createElement("small");
-        scope.textContent = (p.profitQty ? "Kısmi toplam · " : "") + count(p.profitQty) + " / " + count(p.qty) + " adet";
-        total.append(scope);
-      }
+      profit.textContent = earnings?.profitPerUnit == null ? "—" : price(earnings.profitPerUnit);
+      total.textContent = earnings?.profit == null ? "—" : price(earnings.profit);
+      if (p.incomplete) detail(total, "Ürüne dağıtılamayan sipariş var");
+      else if (p.keptQty == null) detail(total, "İade adedi belirsiz");
+      else if (ready && earnings?.profit == null) detail(total, "Eksik veri");
       if (showTax) {
         tax.textContent = hasVat && p.taxQty ? price(Math.round(p.taxGross / factor / 100)) : "—";
-        const coverage = document.createElement("small");
-        coverage.textContent = count(p.taxQty) + " / " + count(p.qty) + " adet kapsamda";
-        tax.append(coverage);
+        if (!unallocated) detail(tax, count(p.taxQty) + " adet kapsamda");
       }
     }
     function saveCost() {

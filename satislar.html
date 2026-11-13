@@ -11,7 +11,7 @@
 <body>
   <header class="top"><div class="wrap bar"><a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a><a href="/" class="tool-link">Tek ürün hesapla</a></div></header>
   <main class="wrap sales">
-    <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Kesintilerden sonra her üründe adet başına ne kaldığını görün.</p></div>
+    <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Dönem boyunca satışların, iadelerin ve kesintilerin ürün kârına etkisini görün.</p></div>
     <section class="card">
       <label for="file">Sipariş ve finans listeleri</label>
       <p class="note">Aynı döneme ait iki Excel dosyasını birlikte veya sırayla seçin. Listeler sütun başlıklarından tanınır. İki listeyi içeren tek dosya da kullanabilirsiniz.</p>
@@ -22,40 +22,50 @@
       <p id="status" role="status"></p>
     </section>
     <section id="results" class="card" hidden>
-      <h2>Eşleşen siparişler</h2>
-      <dl class="metrics"><div><dt>Sipariş sayısı</dt><dd id="orders"></dd></div><div><dt>Satılan adet</dt><dd id="qty"></dd></div><div><dt>Toplam net kalan</dt><dd id="net"></dd></div></dl>
+      <h2>Dönem özeti</h2>
+      <p class="note">Dönem, finans listesindeki sipariş tarihine göredir. Dosyada iadenin gerçekleştiği tarih bulunmadığı için özet, bu siparişlere dosyada yansıyan iadeleri içerir.</p>
+      <dl class="metrics">
+        <div><dt>Ürünlere dağıtılan sipariş</dt><dd id="orders"></dd></div>
+        <div><dt>Eşleşen ürün adedi <small>(listede görünen)</small></dt><dd id="qty"></dd></div>
+        <div><dt>Ürünlere dağıtılan net ödeme</dt><dd id="net"></dd></div>
+        <div><dt>Ürünlere dağıtılamayan net tutar</dt><dd id="unmatchedNet"></dd></div>
+      </dl>
       <p class="note" id="coverage"></p>
       <h2>Ürün bazında ciro ve kesintiler</h2>
       <label>Gruplama<select id="group"><option value="name">Ürün adına göre</option><option value="sku">Stok koduna göre</option></select></label>
-      <p class="note">Ciro, kesintiler ve net ödemede üstte toplam, altta adet başına tutar gösterilir. Ciro indirim öncesidir. Kesintiler sepetteki satış payına göre dağıtılır. Net ödeme, finans raporundaki indirim, iade ve diğer hareketleri içerir.</p>
+      <p class="note">Net ödeme, iade ve tüm kesintilerden sonra ürüne düşen tutardır. Ciro indirim ve iade öncesidir. Cirodan net ödemeye kadar her sütunda üstte dönem toplamı, altta sipariş edilen adet başına ortalama görünür.</p>
       <label class="tax-toggle"><input id="withholding" type="checkbox"> %1 e-ticaret stopaj tahminini göster</label>
       <p id="taxNote" class="note" hidden>Tevkifat kapsamındaki satıcı için tahmin: KDV hariç faturalanacak tutarın %1’i. Yalnızca Türkiye’de teslim edilmiş, iade veya iptal hareketi olmayan, kart ya da alışveriş kredisiyle ödenmiş satırlar kapsanır. Tahmin net tutardan düşülmez. <a href="https://gib.gov.tr/mevzuat/kanun/433/teblig/6659">GİB açıklaması</a></p>
-      <p class="note">Birim alış fiyatını KDV hariç girin ve ürünün KDV oranını seçin. Alış ve satışta aynı ürün KDV oranı kullanılır. Tutarlar açık rapor boyunca saklanır.</p>
-      <details class="profit-help"><summary>Kalan tutar ve kâr nasıl hesaplanır?</summary>
-        <p><strong>Kalan nakit</strong> için ürünün fatura tutarından payına düşen kesintiler ve KDV dahil alış bedeli çıkarılır. <strong>Kâr</strong> hesabında ayrıca ürüne ve hizmetlere ait KDV ayrıştırılır.</p>
-        <p>Bu üç sonuç aynı satışları kapsar. Yalnızca fatura tutarı finans kayıtlarıyla uyuşan yurt içi teslim satışları hesaba girer. Toplam kârın altında belirtilen adet, bu toplama dahil edilen miktardır.</p>
+      <p class="note">Ürün kârını görmek için birim alış fiyatını KDV hariç girin ve ürünün KDV oranını seçin.</p>
+      <details class="profit-help"><summary>Toplam kâr ve adet başına kâr nasıl hesaplanır?</summary>
+        <p><strong>Bu üründen toplam kâr</strong>, net ödemeden KDV ayrıştırılıp müşteride kalan adetlerin alış maliyeti düşüldüğünde kalan tutardır. İade edilen ürünün yeniden satılabildiği varsayılır.</p>
+        <p>İade kargosu belirlenebilen iade ürünlerine, komisyon müşteride kalan ürünlere dağıtılır. Tam iadede komisyon için ürünlerin ilk satış payları kullanılır. Diğer ortak giderler ürünün sepetteki satış payına göre bölünür. Sipariş listesinde görünmeyen iptal satırları ürünün adedine ve iade tutarına eklenmez.</p>
+        <p>Kâr tahmininde yurt içi ürün satışındaki ve bilinen hizmet giderlerindeki KDV ayrıştırılır. Yurt dışı satışlar ihracat kabul edilir. Ceza ve diğer giderlerde rapordaki tutar aynen kullanılır. Ürünlere dağıtılamayan net tutar dönem özetinde görünür.</p>
+        <p><strong>Satılan adet başına kâr</strong>, ürünün dönem kârının müşteride kalan adede bölünmesidir. Tüm adetler iade edilmişse toplam kârda o ürünün dönem sonucu görünür ve adet başına kâr boş kalır. Kısmi iadede iade adedi belirlenememişse ürünün kârı hesaplanamaz.</p>
       </details>
-      <div class="table-scroll" tabindex="0" role="region" aria-label="Ürün bazında kesintiler ve ortalama kalan tutar">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Ürünlere göre satış, iade, kesinti ve kâr tablosu">
         <table>
           <thead><tr>
             <th scope="col" id="keyTitle">Ürün adı</th>
             <th scope="col">Adet</th>
             <th scope="col">Ciro</th>
-            <th scope="col">Kargo¹</th>
+            <th scope="col">İade/iptal<small>Tutar</small></th>
+            <th scope="col">Gönderi kargosu</th>
+            <th scope="col">İade kargosu</th>
             <th scope="col">Komisyon</th>
             <th scope="col">Hizmet bedeli</th>
+            <th scope="col">Ceza</th>
             <th scope="col">Net ödeme</th>
             <th scope="col">Birim alış<small>KDV hariç</small></th>
             <th scope="col">KDV</th>
             <th scope="col" id="taxHead" hidden>Stopaj<small>Tahmini</small></th>
-            <th scope="col">Kalan nakit<small>Adet başına</small></th>
-            <th scope="col">Birim kâr<small>Tahmini</small></th>
-            <th scope="col">Bu üründen toplam kâr<small>Tahmini</small></th>
+            <th scope="col">Satılan adet başına kâr<small>Tahmini</small></th>
+            <th scope="col">Bu üründen toplam kâr<small>Dönem tahmini</small></th>
           </tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>
-      <p class="note">¹ Gönderi ve iade kargosu toplamı. “—” eksik veri veya henüz girilmemiş değer anlamına gelir.</p>
+      <p class="note">“—” tutarın hesaplanamadığını gösterir. Kesinti ve iadelerde finans listesindeki işaret kullanılır.</p>
     </section>
   </main>
 </body>
