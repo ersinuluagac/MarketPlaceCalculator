@@ -105,3 +105,22 @@ footer a { color: inherit; padding-block: 8px; }
 .breakdown dl { margin: 0; }
 .breakdown .subtotal { border-top: 1px solid var(--line); margin-top: 3px; }
 .breakdown .subtotal dt { color: var(--ink); font-weight: 650; }
+.tool-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.tool-link { color: var(--ink); font-weight: 600; font-size: .9rem; padding-block: 10px; }
+.sales { padding-bottom: 32px; }
+.sales .card + .card { margin-top: 16px; }
+.sales h2 { font-size: 1.15rem; margin-block: 8px 16px; }
+.sales #file { padding: 12px 0; height: auto; }
+.sales #file:focus-visible { outline: 2px solid var(--muted); }
+.sales #status:empty { display: none; }
+.sales #coverage { margin-bottom: 24px; }
+.sales select { display: block; max-width: 240px; }
+.table-scroll { overflow-x: auto; margin-top: 14px; }
+.sales table { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
+.sales th, .sales td { padding: 10px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.sales th { background: var(--field); }
+.sales th:first-child, .sales td:first-child { min-width: 150px; white-space: normal; text-align: left; }
+@media (max-width: 480px) {
+  .bar:has(.tool-nav) { flex-wrap: wrap; padding-block: 8px; }
+  .sales .metrics { grid-template-columns: 1fr; }
+}

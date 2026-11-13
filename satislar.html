@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gerçekleşen satışlar · KazancınıBil</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/vendor/xlsx-0.20.3.mini.min.js"></script>
+  <script type="module" src="/sales-ui.js"></script>
+</head>
+<body>
+  <header class="top"><div class="wrap bar"><a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a><a href="/" class="tool-link">Tek ürün hesapla</a></div></header>
+  <main class="wrap sales">
+    <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Kesintilerden sonra her üründe adet başına ne kaldığını görün.</p></div>
+    <section class="card">
+      <label for="file">Aylık Excel dosyası</label>
+      <p class="note">Giris_Urunler ve Giris_Finans sayfalarını içeren .xlsx dosyasını seçin. Veriler yalnızca bu cihazda işlenir.</p>
+      <input id="file" type="file" accept=".xlsx">
+      <p id="status" role="status"></p>
+    </section>
+    <section id="results" class="card" hidden>
+      <h2>Eşleşen siparişler</h2>
+      <dl class="metrics"><div><dt>Sipariş sayısı</dt><dd id="orders"></dd></div><div><dt>Satılan adet</dt><dd id="qty"></dd></div><div><dt>Toplam net kalan</dt><dd id="net"></dd></div></dl>
+      <p class="note" id="coverage"></p>
+      <h2>Ürün ortalamaları</h2>
+      <label>Gruplama<select id="group"><option value="name">Ürün adına göre</option><option value="sku">Stok koduna göre</option></select></label>
+      <p class="note">Kargo ve platform hizmet bedeli net tutara dahildir. Ortalamalar satılan adet üzerinden hesaplanır. Ürün alış maliyeti ayrıca düşülmelidir.</p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Ürün bazında kesintiler ve ortalama kalan tutar">
+        <table><thead><tr><th scope="col" id="keyTitle">Ürün adı</th><th scope="col">Adet</th><th scope="col">Net / adet</th><th scope="col">Toplam net</th><th scope="col">Gönderi kargosu</th><th scope="col">Hizmet bedeli</th></tr></thead><tbody id="items"></tbody></table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
