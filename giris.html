@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="tr" data-page="giris">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="KazancınıBil hesabınıza giriş yaparak kayıtlı alış fiyatlarınızla satış raporunuzu açın.">
+  <title>Giriş yap · KazancınıBil</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/site-ui.js"></script>
+  <script type="module" src="/auth-page.js"></script>
+</head>
+<body class="auth-page">
+  <header class="top"><div class="wrap bar">
+    <a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a>
+    <nav class="tool-nav" aria-label="Araçlar"><a class="tool-link" href="/satislar">Satış raporu</a>
+      <button type="button" id="theme" aria-label="Koyu tema" aria-pressed="false" title="Koyu temaya geç"><span class="theme-icon" aria-hidden="true"></span></button></nav>
+  </div></header>
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <div class="auth-intro">
+        <h1 id="authTitle">Giriş yap</h1>
+        <p id="authIntro">Kayıtlı alış fiyatlarınızla satış raporunuza devam edin.</p>
+      </div>
+      <form id="authForm" method="post">
+        <fieldset id="authFields" disabled>
+          <label for="email">E-posta adresi</label><input id="email" type="email" name="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ornek@magaza.com" required>
+          <div id="passwordField">
+            <div class="password-label"><label for="password">Şifre</label><a href="/giris?islem=sifirla" id="forgotPassword">Şifremi unuttum</a></div>
+            <div class="password-entry"><input id="password" type="password" name="password" autocomplete="current-password" required>
+              <button id="revealPassword" type="button" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
+          </div>
+          <button type="submit" class="auth-submit" id="authSubmit">Giriş yap<span aria-hidden="true">→</span></button>
+        </fieldset>
+      </form>
+      <p class="auth-feedback" id="authMessage" role="status" aria-live="polite"></p>
+      <button class="resend-confirm" id="resendConfirm" type="button" hidden>Doğrulama e-postasını yeniden gönder</button>
+      <a class="account-link" href="/satislar" id="continueReport" hidden>Satış raporunu aç</a>
+      <p class="auth-alternate" id="alternate">Hesabınız yok mu? <a data-account-route href="/kayit">Hesap oluştur</a></p>
+      <noscript><p>Hesap işlemleri için tarayıcınızda JavaScript’i etkinleştirin.</p></noscript>
+    </section>
+    <a class="guest-return" href="/satislar">Misafir olarak raporu kullan</a>
+  </main>
+</body>
+</html>

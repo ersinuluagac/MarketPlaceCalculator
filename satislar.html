@@ -19,28 +19,17 @@
   </div></header>
   <main class="wrap sales">
     <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Dönem boyunca satışların, iadelerin ve kesintilerin ürün kârına etkisini görün.</p></div>
+    <aside id="reportGuest" class="guest-strip" hidden>
+      <div><strong>Alış fiyatlarım</strong><p>Ürün maliyetlerinizi kaydedin ve sonraki raporlarda otomatik kullanın.</p></div>
+      <div class="guest-links"><a class="account-link" id="reportLogin" href="/giris">Giriş yap</a><a id="reportSignup" href="/kayit">Hesap oluştur</a></div>
+      <small id="keepReport" hidden>Raporunuz burada açık kalır. Hesap işlemi yeni sekmede açılır.</small>
+    </aside>
     <details class="card account" id="costAccount" hidden>
       <summary id="accountTitle">
         <span class="account-icon" aria-hidden="true"></span>
-        <span class="account-heading"><strong id="accountName">Alış fiyatlarım</strong>
-          <span id="accountCaption">Kaydettiğin fiyatları sonraki raporlarında kullan.</span></span>
-        <span class="account-trigger"><span id="accountAction">Giriş yap</span><i aria-hidden="true"></i></span>
+        <span class="account-heading"><strong>Hesabım</strong><span id="accountCaption"></span></span>
+        <span class="account-trigger"><span id="accountAction">Hesabı yönet</span><i aria-hidden="true"></i></span>
       </summary>
-      <div id="guestAccount">
-        <div class="auth-switch" role="group" aria-label="Hesap işlemi">
-          <button type="button" id="chooseLogin" aria-pressed="true">Giriş yap</button>
-          <button type="button" id="showSignup" aria-pressed="false">Hesap oluştur</button>
-        </div>
-        <form id="loginForm" method="post">
-          <label>E-posta adresi<input type="email" name="email" autocomplete="username" placeholder="ornek@magaza.com" required></label>
-          <label id="passwordLabel"><span>Şifre</span><input type="password" name="password" autocomplete="current-password" required></label>
-          <div class="auth-actions">
-            <button type="submit" id="authSubmit" class="auth-primary">Giriş yap</button>
-            <button type="button" id="showReset" class="auth-link">Şifremi unuttum</button>
-            <button type="button" id="showLogin" class="auth-link" hidden>Girişe dön</button>
-          </div>
-        </form>
-      </div>
       <div id="memberActions" class="auth-actions" hidden>
         <button type="button" id="showSetPassword">Şifre belirle</button>
         <button type="button" id="logout">Çıkış yap</button>
@@ -71,12 +60,14 @@
       <label for="file">Sipariş ve finans listeleri</label>
       <p class="note">Aynı döneme ait iki Excel dosyasını birlikte veya sırayla seçin. Listeler sütun başlıklarından tanınır. İki listeyi içeren tek dosya da kullanabilirsiniz.</p>
       <input id="file" type="file" accept=".xlsx" multiple>
+      <button id="trySample" type="button" class="sample-link">Örnek raporu incele <span aria-hidden="true">→</span></button>
       <ul aria-label="Seçilen listeler"><li id="productsSource">Sipariş listesi bekleniyor</li><li id="financesSource">Finans listesi bekleniyor</li></ul>
       <button type="button" id="clearFiles" hidden>Listeleri temizle</button>
       <p class="note">Dosyalar yalnızca bu cihazda işlenir.</p>
       <p id="status" role="status"></p>
     </section>
     <section id="results" class="card" hidden>
+      <p class="sample-notice" id="sampleNotice" hidden>Örnek rapor · Satışlar ve alış fiyatları temsilidir. Kendi raporunuza geçmek için Excel listelerinizi seçin.</p>
       <h2>Dönem özeti</h2>
       <p class="note">Dönem, finans listesindeki sipariş tarihine göredir. Dosyada iadenin gerçekleştiği tarih bulunmadığı için özet, bu siparişlere dosyada yansıyan iadeleri içerir.</p>
       <dl class="metrics">

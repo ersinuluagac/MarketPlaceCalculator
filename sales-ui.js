@@ -1,4 +1,5 @@
 import { listRoles, monthlyReport, productEarnings, historicalEarnings } from "./monthly.js";
+import { sampleReport } from "./sample-report.js";
 
 const get = id => document.getElementById(id);
 const money = new Intl.NumberFormat("tr-TR", {style: "currency", currency: "TRY"});
@@ -6,6 +7,7 @@ const price = cents => money.format(cents / 100);
 const count = value => value.toLocaleString("tr-TR");
 let input = {};
 let report, reportGroup;
+let showingSample = false;
 const costs = new Map();
 let accountId = null, history = null, saveAccountCost;
 const labels = { products: "Sipariş listesi", finances: "Finans listesi" };
@@ -129,7 +131,7 @@ function render() {
     const vatCell = row.insertCell();
     vatCell.append(vat);
     const keys = [...new Set(p.costLines.map(line => line.productKey).filter(Boolean))];
-    const useAccount = Boolean(accountId && keys.length);
+    const useAccount = Boolean(accountId && keys.length && !showingSample);
     const recorded = useAccount && history ? historicalEarnings(p, history) : null;
     if (useAccount) {
       const rate = recorded?.rates.length === 1 ? recorded.rates[0] : null;
@@ -186,9 +188,20 @@ function showSources() {
     get(role + "Source").textContent = source ? label + ": " + source.name : label + " bekleniyor";
   }
   get("clearFiles").hidden = !Object.keys(input).length;
+  get("trySample").hidden = Boolean(input.products || input.finances);
+  const loaded = Boolean(!showingSample && (input.products || input.finances));
+  get("keepReport").hidden = !loaded;
+  for (const [id, path] of [["reportLogin", "/giris"], ["reportSignup", "/kayit"]]) {
+    const link = get(id);
+    link.href = loaded ? path + "?rapor=acik" : path;
+    link.target = loaded ? "_blank" : "_self";
+    link.rel = "noopener";
+  }
 }
 
 function reset() {
+  showingSample = false;
+  get("sampleNotice").hidden = true;
   report = null;
   costs.clear();
   input = {};
@@ -200,18 +213,17 @@ function reset() {
 }
 
 if (location.protocol === "https:" || location.protocol === "http:") {
+  get("reportGuest").hidden = false;
   import("./cost-account.js").then(async ({connectCostAccount}) => {
     saveAccountCost = await connectCostAccount(accountChanged);
   }).catch(() => {
-    get("costAccount").hidden = false;
-    get("guestAccount").hidden = true;
-    get("accountMessage").textContent = "Giriş yüklenemedi. Sayfayı yenileyebilir veya raporu misafir olarak kullanabilirsiniz.";
+    get("status").textContent = "Kayıtlı fiyatlar yüklenemedi. Raporu misafir olarak kullanabilir veya sayfayı yenileyebilirsiniz.";
   });
 }
 
 function accountChanged(owner, records) {
   if (owner !== accountId) {
-    costs.clear();
+    if (!showingSample) costs.clear();
     get("costEditor").close();
   }
   accountId = owner;
@@ -241,6 +253,20 @@ async function readLists(file) {
 }
 
 get("clearFiles").addEventListener("click", reset);
+get("trySample").addEventListener("click", () => {
+  reset();
+  input = sampleReport();
+  showingSample = true;
+  for (const [sku, name, cost] of [["RO-01", "Raf örtüsü", "75"], ["CS-01", "Çekmece düzenleyici", "90"]]) {
+    const draft = {cost, vat: "20"};
+    costs.set("name:" + name, draft);
+    costs.set("sku:sku:" + sku, draft);
+  }
+  get("sampleNotice").hidden = false;
+  showSources();
+  render();
+  get("sampleNotice").scrollIntoView({block: "center"});
+});
 get("group").addEventListener("change", () => { if (!get("results").hidden) render(); });
 get("withholding").addEventListener("change", () => { if (!get("results").hidden) render(); });
 get("file").addEventListener("change", async event => {
@@ -248,6 +274,7 @@ get("file").addEventListener("change", async event => {
   if (!files.length) return;
   if (input.products && input.finances) reset();
   get("file").disabled = true;
+  get("trySample").disabled = true;
   get("clearFiles").disabled = true;
   get("results").hidden = true;
   get("status").textContent = "Listeler okunuyor…";
@@ -274,6 +301,7 @@ get("file").addEventListener("change", async event => {
     showSources();
     get("file").value = "";
     get("file").disabled = false;
+    get("trySample").disabled = false;
     get("clearFiles").disabled = false;
   }
 });

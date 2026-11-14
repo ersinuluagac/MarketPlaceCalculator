@@ -1,6 +1,15 @@
 import { consts, getFormValues } from "./data.js";
 import { calculateNetProfit } from "./calculator.js";
 
+import("./auth-client.js").then(async ({getAccountClient}) => {
+  const client = await getAccountClient();
+  client.auth.onAuthStateChange((_event, session) => {
+    const link = document.getElementById("homeAccount");
+    link.textContent = session ? "Hesabım" : "Giriş yap";
+    link.href = session ? "/satislar#costAccount" : "/giris";
+  });
+}).catch(() => { /* The calculator also works without the account service. */ });
+
 const form = document.querySelector("#calculatorForm");
 const report = document.querySelector("#report");
 const scenario = document.querySelector("#scenario");

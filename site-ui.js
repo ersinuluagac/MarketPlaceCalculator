@@ -27,7 +27,8 @@
     const fromCalculator = ["/", "/index", "/index.html"].includes(previous.pathname);
     const fromSales = ["/satislar", "/satislar/", "/satislar.html"].includes(previous.pathname);
     if (previous.origin === location.origin &&
-        (root.dataset.page === "sales" ? fromCalculator : fromSales)) root.dataset.navArrival = "";
+        ((root.dataset.page === "sales" && fromCalculator) ||
+         (root.dataset.page === "calculator" && fromSales))) root.dataset.navArrival = "";
   }
   document.addEventListener("animationend", event => {
     if (event.animationName === "nav-arrival") delete root.dataset.navArrival;

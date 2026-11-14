@@ -1,33 +1,17 @@
-const projectUrl = "https://uuiuondxieynhzjzfcis.supabase.co";
-const publicKey = "sb_publishable_wWJjYdryJpsRQF0x3dSJHA_8wGfNUBV";
+import { getAccountClient, authError } from "./auth-client.js";
+
 const table = "product_cost_history";
 
 export async function connectCostAccount(onChange) {
-  await new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = new URL("./vendor/supabase-2.119.0.js", import.meta.url);
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.append(script);
-  });
-  const client = window.supabase.createClient(projectUrl, publicKey);
+  const expiredLink = new URLSearchParams(location.hash.slice(1)).get("error_code") === "otp_expired";
+  const client = await getAccountClient();
   const panel = document.getElementById("costAccount");
-  const form = document.getElementById("loginForm");
   const passwordForm = document.getElementById("passwordForm");
   const message = document.getElementById("accountMessage");
   const priceMessage = document.getElementById("priceLoadMessage");
   const logout = document.getElementById("logout");
   const retry = document.getElementById("reloadCosts");
-  const submit = document.getElementById("authSubmit");
-  const signup = document.getElementById("showSignup");
-  const login = document.getElementById("chooseLogin");
-  const reset = document.getElementById("showReset");
-  const back = document.getElementById("showLogin");
   const setPassword = document.getElementById("showSetPassword");
-  const redirectTo = location.origin + "/satislar";
-  const linkParams = new URLSearchParams(location.hash.slice(1));
-  const expiredLink = linkParams.get("error_code") === "otp_expired";
-  let mode = "login";
   let owner, generation = 0;
   async function load() {
     const version = ++generation;
@@ -55,28 +39,6 @@ export async function connectCostAccount(onChange) {
       retry.hidden = false;
     }
   }
-  function showMode(nextMode) {
-    mode = nextMode;
-    const password = form.elements.password;
-    password.value = "";
-    password.disabled = mode === "reset";
-    password.autocomplete = mode === "signup" ? "new-password" : "current-password";
-    const label = document.getElementById("passwordLabel");
-    label.hidden = password.disabled;
-    label.querySelector("span").textContent = mode === "signup" ? "Yeni şifre" : "Şifre";
-    submit.textContent = {login: "Giriş yap", signup: "Hesap oluştur", reset: "Şifre sıfırlama bağlantısı gönder"}[mode];
-    login.setAttribute("aria-pressed", String(mode === "login"));
-    signup.setAttribute("aria-pressed", String(mode === "signup"));
-    login.parentElement.hidden = mode === "reset";
-    back.hidden = mode !== "reset";
-    reset.hidden = mode !== "login";
-    message.textContent = "";
-  }
-  login.onclick = () => { if (mode !== "login") showMode("login"); };
-  signup.onclick = () => { if (mode !== "signup") showMode("signup"); };
-  reset.onclick = () => showMode("reset");
-  back.onclick = () => showMode("login");
-
   function showPasswordForm(open) {
     passwordForm.reset();
     passwordForm.hidden = !open;
@@ -96,14 +58,12 @@ export async function connectCostAccount(onChange) {
       ++generation;
       owner = next;
       onChange(owner, null);
-      form.reset();
-      showMode("login");
       showPasswordForm(false);
-      document.getElementById("guestAccount").hidden = Boolean(owner);
+      panel.hidden = !owner;
+      if (owner && location.hash === "#costAccount") panel.open = true;
+      document.getElementById("reportGuest").hidden = Boolean(owner);
       document.getElementById("memberActions").hidden = !owner;
-      document.getElementById("accountName").textContent = owner ? "Hesabım" : "Alış fiyatlarım";
-      document.getElementById("accountCaption").textContent = owner ? session.user.email : "Kaydettiğin fiyatları sonraki raporlarında kullan.";
-      document.getElementById("accountAction").textContent = owner ? "Hesabı yönet" : "Giriş yap";
+      document.getElementById("accountCaption").textContent = session?.user.email || "";
       priceMessage.textContent = "";
       retry.hidden = true;
       // Start database calls after the auth callback releases its session lock.
@@ -111,39 +71,8 @@ export async function connectCostAccount(onChange) {
     }
     if (event === "PASSWORD_RECOVERY" && owner) showPasswordForm(true);
     if (event === "INITIAL_SESSION" && expiredLink && !owner) {
-      panel.open = true;
-      showMode("reset");
-      message.textContent = "Bağlantının süresi dolmuş veya bağlantı daha önce kullanılmış. Şifre belirlemek için yeni bir bağlantı isteyin.";
+      location.replace("/giris?islem=baglanti");
     }
-  });
-  form.addEventListener("submit", async event => {
-    event.preventDefault();
-    if (submit.disabled) return;
-    const action = mode;
-    const email = form.elements.email.value.trim();
-    const password = form.elements.password.value;
-    submit.disabled = login.disabled = signup.disabled = reset.disabled = back.disabled = true;
-    message.textContent = "";
-    try {
-      if (action === "login") {
-        const {error} = await client.auth.signInWithPassword({email, password});
-        if (error) throw error;
-      } else if (action === "signup") {
-        const {data, error} = await client.auth.signUp({email, password, options: {emailRedirectTo: redirectTo}});
-        if (error) throw error;
-        if (!data.session && !owner) {
-          showMode("login");
-          message.textContent = "İlk giriş için e-posta adresinizi doğrulayın. Daha önce hesap açtıysanız şifrenizle giriş yapabilirsiniz.";
-        }
-      } else {
-        const {error} = await client.auth.resetPasswordForEmail(email, {redirectTo});
-        if (error) throw error;
-        showMode("login");
-        message.textContent = "Bu adresle bir hesabınız varsa şifre belirleme bağlantısı e-postanıza gönderildi.";
-      }
-    } catch (error) {
-      message.textContent = authError(error, action);
-    } finally { submit.disabled = login.disabled = signup.disabled = reset.disabled = back.disabled = false; }
   });
   passwordForm.addEventListener("submit", async event => {
     event.preventDefault();
@@ -171,7 +100,6 @@ export async function connectCostAccount(onChange) {
     if (error) message.textContent = "Çıkış yapılamadı. Tekrar deneyin.";
   });
   retry.addEventListener("click", load);
-  panel.hidden = false;
   return async function save(record, expectedOwner) {
     if (!owner || expectedOwner !== owner) throw Error("Hesap değişti. Fiyatı yeniden açın.");
     const {error} = await client.from(table).upsert({...record, user_id: expectedOwner},
@@ -181,17 +109,4 @@ export async function connectCostAccount(onChange) {
     onChange(owner, null);
     await load();
   };
-}
-
-function authError(error, action) {
-  if (error.status === 429) return "Çok sık deneme yapıldı. Biraz sonra tekrar deneyin.";
-  switch (error.code) {
-    case "invalid_credentials": return "E-posta adresi veya şifre hatalı. İlk şifrenizi almak için “Şifremi unuttum”u seçebilirsiniz.";
-    case "email_not_confirmed": return "Giriş için önce kayıt e-postasındaki bağlantıdan adresinizi doğrulayın.";
-    case "weak_password": return "Bu şifre kabul edilmedi. Daha uzun, tahmin edilmesi zor bir şifre deneyin.";
-    case "same_password": return "Yeni şifreniz önceki şifrenizden farklı olmalı.";
-    case "reauthentication_needed": return "Şifreyi yenilemek için çıkış yapıp “Şifremi unuttum”u seçin.";
-  }
-  return {login: "Giriş yapılamadı.", signup: "Hesap oluşturulamadı.", reset: "Şifre sıfırlama e-postası gönderilemedi.",
-    update: "Şifre kaydedilemedi."}[action] + " Lütfen tekrar deneyin.";
 }
