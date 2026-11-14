@@ -10,11 +10,6 @@ const costs = new Map();
 let accountId = null, history = null, saveAccountCost;
 const labels = { products: "Sipariş listesi", finances: "Finans listesi" };
 
-try {
-  document.documentElement.dataset.theme = localStorage.getItem("calculator_theme") ||
-    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-} catch { /* Storage is optional. */ }
-
 function amountPair(cell, total, qty) {
   cell.replaceChildren();
   if (total == null) { cell.textContent = "—"; return; }

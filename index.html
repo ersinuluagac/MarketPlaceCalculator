@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="calculator">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="KazancınıBil">
   <meta name="description" content="Tek ürün için Trendyol komisyonu, kargo, KDV ve maliyetleriyle tahmini net kârınızı hesaplayın.">
   <link rel="stylesheet" href="/style.css">
+  <script src="/site-ui.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Q9TKEK0V6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -20,7 +21,10 @@
 <body>
   <header class="top"><div class="wrap bar">
     <a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a>
-    <nav class="tool-nav" aria-label="Araçlar"><a class="tool-link" href="/satislar.html">Gerçekleşen satışlar</a><button type="button" id="theme" aria-pressed="false">Koyu tema</button></nav>
+    <nav class="tool-nav" aria-label="Araçlar">
+      <a class="tool-link" href="/satislar">Satış raporu <span aria-hidden="true">→</span></a>
+      <button type="button" id="theme" aria-label="Koyu tema" aria-pressed="false" title="Koyu temaya geç"><span class="theme-icon" aria-hidden="true"></span></button>
+    </nav>
   </div></header>
   <main class="wrap">
     <div class="intro"><h1>Satış kârı hesaplayıcı</h1><p>Trendyol satışınızda kesintileri, fatura tutarını ve ürün başına kârı görün.</p></div>

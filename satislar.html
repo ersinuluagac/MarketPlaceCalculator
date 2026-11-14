@@ -1,30 +1,45 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="sales">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gerçekleşen satışlar · KazancınıBil</title>
   <link rel="stylesheet" href="/style.css">
+  <script src="/site-ui.js"></script>
   <script defer src="/vendor/xlsx-0.20.3.mini.min.js"></script>
   <script type="module" src="/sales-ui.js"></script>
 </head>
 <body>
-  <header class="top"><div class="wrap bar"><a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a><a href="/" class="tool-link">Tek ürün hesapla</a></div></header>
+  <header class="top"><div class="wrap bar">
+    <a class="brand" href="/"><span class="mark" aria-hidden="true">₺</span> KazancınıBil</a>
+    <nav class="tool-nav" aria-label="Araçlar">
+      <a class="tool-link" href="/"><span aria-hidden="true">←</span> Tek ürün hesapla</a>
+      <button type="button" id="theme" aria-label="Koyu tema" aria-pressed="false" title="Koyu temaya geç"><span class="theme-icon" aria-hidden="true"></span></button>
+    </nav>
+  </div></header>
   <main class="wrap sales">
     <div class="intro"><h1>Gerçekleşen satışlar</h1><p>Dönem boyunca satışların, iadelerin ve kesintilerin ürün kârına etkisini görün.</p></div>
     <details class="card account" id="costAccount" hidden>
-      <summary id="accountTitle">Giriş yap ve alış fiyatlarını hatırla</summary>
+      <summary id="accountTitle">
+        <span class="account-icon" aria-hidden="true"></span>
+        <span class="account-heading"><strong id="accountName">Alış fiyatlarım</strong>
+          <span id="accountCaption">Kaydettiğin fiyatları sonraki raporlarında kullan.</span></span>
+        <span class="account-trigger"><span id="accountAction">Giriş yap</span><i aria-hidden="true"></i></span>
+      </summary>
       <div id="guestAccount">
-        <form id="loginForm" method="post">
-          <label>E-posta adresi<input type="email" name="email" autocomplete="username" required></label>
-          <label id="passwordLabel"><span>Şifre</span><input type="password" name="password" autocomplete="current-password" required></label>
-          <button type="submit" id="authSubmit" class="auth-primary">Giriş yap</button>
-        </form>
-        <div class="auth-actions">
-          <button type="button" id="showSignup">Hesap oluştur</button>
-          <button type="button" id="showReset">Şifremi unuttum</button>
-          <button type="button" id="showLogin" hidden>Girişe dön</button>
+        <div class="auth-switch" role="group" aria-label="Hesap işlemi">
+          <button type="button" id="chooseLogin" aria-pressed="true">Giriş yap</button>
+          <button type="button" id="showSignup" aria-pressed="false">Hesap oluştur</button>
         </div>
+        <form id="loginForm" method="post">
+          <label>E-posta adresi<input type="email" name="email" autocomplete="username" placeholder="ornek@magaza.com" required></label>
+          <label id="passwordLabel"><span>Şifre</span><input type="password" name="password" autocomplete="current-password" required></label>
+          <div class="auth-actions">
+            <button type="submit" id="authSubmit" class="auth-primary">Giriş yap</button>
+            <button type="button" id="showReset" class="auth-link">Şifremi unuttum</button>
+            <button type="button" id="showLogin" class="auth-link" hidden>Girişe dön</button>
+          </div>
+        </form>
       </div>
       <div id="memberActions" class="auth-actions" hidden>
         <button type="button" id="showSetPassword">Şifre belirle</button>

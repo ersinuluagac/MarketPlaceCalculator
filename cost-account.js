@@ -20,6 +20,7 @@ export async function connectCostAccount(onChange) {
   const retry = document.getElementById("reloadCosts");
   const submit = document.getElementById("authSubmit");
   const signup = document.getElementById("showSignup");
+  const login = document.getElementById("chooseLogin");
   const reset = document.getElementById("showReset");
   const back = document.getElementById("showLogin");
   const setPassword = document.getElementById("showSetPassword");
@@ -64,11 +65,15 @@ export async function connectCostAccount(onChange) {
     label.hidden = password.disabled;
     label.querySelector("span").textContent = mode === "signup" ? "Yeni şifre" : "Şifre";
     submit.textContent = {login: "Giriş yap", signup: "Hesap oluştur", reset: "Şifre sıfırlama bağlantısı gönder"}[mode];
-    back.hidden = mode === "login";
-    signup.hidden = reset.hidden = mode !== "login";
+    login.setAttribute("aria-pressed", String(mode === "login"));
+    signup.setAttribute("aria-pressed", String(mode === "signup"));
+    login.parentElement.hidden = mode === "reset";
+    back.hidden = mode !== "reset";
+    reset.hidden = mode !== "login";
     message.textContent = "";
   }
-  signup.onclick = () => showMode("signup");
+  login.onclick = () => { if (mode !== "login") showMode("login"); };
+  signup.onclick = () => { if (mode !== "signup") showMode("signup"); };
   reset.onclick = () => showMode("reset");
   back.onclick = () => showMode("login");
 
@@ -96,7 +101,9 @@ export async function connectCostAccount(onChange) {
       showPasswordForm(false);
       document.getElementById("guestAccount").hidden = Boolean(owner);
       document.getElementById("memberActions").hidden = !owner;
-      document.getElementById("accountTitle").textContent = owner ? "Hesabım · " + session.user.email : "Giriş yap ve alış fiyatlarını hatırla";
+      document.getElementById("accountName").textContent = owner ? "Hesabım" : "Alış fiyatlarım";
+      document.getElementById("accountCaption").textContent = owner ? session.user.email : "Kaydettiğin fiyatları sonraki raporlarında kullan.";
+      document.getElementById("accountAction").textContent = owner ? "Hesabı yönet" : "Giriş yap";
       priceMessage.textContent = "";
       retry.hidden = true;
       // Start database calls after the auth callback releases its session lock.
@@ -115,7 +122,7 @@ export async function connectCostAccount(onChange) {
     const action = mode;
     const email = form.elements.email.value.trim();
     const password = form.elements.password.value;
-    submit.disabled = signup.disabled = reset.disabled = back.disabled = true;
+    submit.disabled = login.disabled = signup.disabled = reset.disabled = back.disabled = true;
     message.textContent = "";
     try {
       if (action === "login") {
@@ -136,7 +143,7 @@ export async function connectCostAccount(onChange) {
       }
     } catch (error) {
       message.textContent = authError(error, action);
-    } finally { submit.disabled = signup.disabled = reset.disabled = back.disabled = false; }
+    } finally { submit.disabled = login.disabled = signup.disabled = reset.disabled = back.disabled = false; }
   });
   passwordForm.addEventListener("submit", async event => {
     event.preventDefault();

@@ -5,7 +5,6 @@ const form = document.querySelector("#calculatorForm");
 const report = document.querySelector("#report");
 const scenario = document.querySelector("#scenario");
 const result = document.querySelector("#result");
-const theme = document.querySelector("#theme");
 const historyKey = "calculator_history";
 const moneyFormat = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" });
 const numberFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
@@ -20,17 +19,6 @@ function readSetting(key) {
 function saveSetting(key, value) {
   try { localStorage.setItem(key, value); } catch { /* The session still works without storage. */ }
 }
-
-function applyTheme(mode) {
-  document.documentElement.dataset.theme = mode;
-  theme.setAttribute("aria-pressed", String(mode === "dark"));
-}
-applyTheme(readSetting("calculator_theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
-theme.addEventListener("click", () => {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  applyTheme(next);
-  saveSetting("calculator_theme", next);
-});
 
 for (const [key, company] of Object.entries(consts.companies)) {
   form.elements.shippingCompany.add(new Option(company.name, key));

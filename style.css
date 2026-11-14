@@ -1,5 +1,7 @@
 :root {
   color-scheme: light;
+  --calculator-width: min(1080px, calc(100% - 40px));
+  --sales-width: min(1920px, calc(100% - clamp(20px, 4vw, 80px)));
   --bg: #f2f2f3;
   --paper: #ffffff;
   --ink: #202124;
@@ -27,10 +29,17 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--ink); }
-.wrap { width: min(1080px, calc(100% - 40px)); margin-inline: auto; }
+.wrap { width: var(--calculator-width); margin-inline: auto; }
 .top { border-bottom: 1px solid var(--line); }
 .bar, footer, .actions, .history-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .bar { min-height: 64px; }
+[data-page="sales"] .bar, .wrap.sales { width: var(--sales-width); }
+@media (prefers-reduced-motion: no-preference) {
+  [data-nav-arrival] .bar { animation: nav-arrival 420ms cubic-bezier(.22,.68,.15,1) backwards; }
+  [data-page="sales"] .bar { --nav-start: var(--calculator-width); }
+  [data-page="calculator"] .bar { --nav-start: var(--sales-width); }
+  @keyframes nav-arrival { from { width: var(--nav-start); } }
+}
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-size: 1.12rem; font-weight: 700; }
 .mark { background: var(--hero); color: var(--accent); border-radius: 9px; padding: 5px 10px; }
 .intro { margin: 38px 0 24px; }
@@ -80,7 +89,18 @@ dd { margin: 4px 0 0; font-weight: 650; font-variant-numeric: tabular-nums; }
 summary { cursor: pointer; padding: 13px 0; font-weight: 650; }
 #detail { border-top: 1px solid var(--line); }
 .note, #tariffDate { color: var(--muted); font-size: .84rem; line-height: 1.5; margin-bottom: 0; }
-#theme[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+#theme {
+  display: grid; place-items: center; flex: none; width: 44px; height: 44px;
+  padding: 0; border-radius: 50%; background: var(--paper);
+}
+.theme-icon { display: block; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset -5px -3px currentColor; transform: rotate(12deg); }
+[data-theme="dark"] .theme-icon {
+  width: 10px; height: 10px; border: 1.5px solid currentColor; transform: none;
+  box-shadow: 0 -8px 0 -4px currentColor, 0 8px 0 -4px currentColor,
+    8px 0 0 -4px currentColor, -8px 0 0 -4px currentColor,
+    6px 6px 0 -4px currentColor, -6px -6px 0 -4px currentColor,
+    6px -6px 0 -4px currentColor, -6px 6px 0 -4px currentColor;
+}
 .breakdown { padding: 12px 14px; }
 #breakdown { display: grid; gap: 10px; }
 .breakdown div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-block: 5px; }
@@ -94,7 +114,7 @@ footer a { color: inherit; padding-block: 8px; }
 @media (max-width: 760px) {
   .layout { grid-template-columns: 1fr; gap: 16px; }
   .intro { margin: 24px 0 18px; }
-  .wrap { width: calc(100% - 28px); }
+  :root { --calculator-width: calc(100% - 28px); }
   .fields { gap: 12px; }
 }
 @media (max-width: 390px) {
@@ -105,17 +125,19 @@ footer a { color: inherit; padding-block: 8px; }
 .breakdown dl { margin: 0; }
 .breakdown .subtotal { border-top: 1px solid var(--line); margin-top: 3px; }
 .breakdown .subtotal dt { color: var(--ink); font-weight: 650; }
-.tool-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.tool-link { color: var(--ink); font-weight: 600; font-size: .9rem; padding-block: 10px; }
+.tool-nav { display: flex; align-items: center; gap: 14px; }
+.tool-link {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px;
+  color: var(--ink); font-weight: 600; font-size: .9rem; text-decoration: none;
+}
+.tool-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sales {
-  width: min(1920px, calc(100% - clamp(20px, 4vw, 80px)));
   padding-bottom: 32px;
   --row-odd: #f6f6f7;
   --row-even: #e1e2e4;
   --table-head: #cdd0d4;
 }
 :root[data-theme="dark"] .sales { --row-odd: #26272b; --row-even: #37393e; --table-head: #45474d; }
-.sales > .card:first-of-type { max-width: 1080px; }
 .sales #results { padding: clamp(14px, 1.5vw, 28px); }
 .sales .metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .sales .note, .sales .profit-help { max-width: 100ch; }
@@ -126,15 +148,56 @@ footer a { color: inherit; padding-block: 8px; }
 .sales #file { padding: 12px 0; height: auto; }
 .sales #file:focus-visible { outline: 2px solid var(--muted); }
 .sales #status:empty { display: none; }
-.sales .account { margin-bottom: 16px; padding-block: 4px; }
-.account summary { overflow-wrap: anywhere; }
-.account form { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
-.account .auth-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.account .auth-primary { color: var(--on-primary); background: var(--primary); }
+.sales .account { margin-bottom: 16px; padding: 0; overflow: clip; }
+.account summary {
+  display: flex; align-items: center; gap: 14px; padding: 19px clamp(16px, 2vw, 30px);
+  list-style: none;
+}
+.account summary::-webkit-details-marker { display: none; }
+.account summary:focus-visible { outline-offset: -4px; border-radius: 16px; }
+.account-icon {
+  position: relative; flex: 0 0 46px; height: 46px; border-radius: 13px;
+  color: var(--on-primary); background: var(--primary);
+}
+.account-icon::before, .account-icon::after { content: ""; position: absolute; left: 50%; translate: -50% 0; border: 1.6px solid currentColor; }
+.account-icon::before { width: 8px; height: 8px; top: 10px; border-radius: 50%; }
+.account-icon::after { width: 18px; height: 8px; bottom: 10px; border-radius: 12px 12px 4px 4px; }
+.account-heading { min-width: 0; display: grid; gap: 3px; overflow-wrap: anywhere; }
+.account-heading strong { font-size: 1.05rem; }
+.account-heading #accountCaption { font-size: .9rem; line-height: 1.4; font-weight: 450; color: var(--muted); }
+.account-trigger {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 11px;
+  padding: 8px 13px; background: var(--field); border: 1px solid var(--line); border-radius: 20px; font-size: .85rem;
+}
+.account-trigger i { width: 7px; height: 7px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
+.account[open] .account-trigger i { transform: translateY(2px) rotate(225deg); }
+.account[open] #accountAction { display: none; }
+.account[open] .account-trigger { width: 36px; height: 36px; justify-content: center; padding: 0; }
+.account[open] summary { border-bottom: 1px solid var(--line); }
+.account #guestAccount, .account #memberActions, .account #passwordForm, .account [role="status"], .account #reloadCosts {
+  margin: 16px clamp(16px, 2vw, 30px);
+}
+.auth-switch { display: inline-flex; padding: 3px; background: var(--field); border: 1px solid var(--line); border-radius: 11px; }
+.auth-switch button { min-height: 36px; border: 0; border-radius: 8px; padding: 6px 14px; background: transparent; color: var(--muted); }
+.auth-switch [aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 4px #0002; }
+.account form { display: flex; align-items: end; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+.account form label { width: min(240px, 100%); }
+.account .auth-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.account .auth-primary { color: var(--on-primary); background: var(--primary); border-color: var(--primary); padding-inline: 20px; }
+.account .auth-link { background: transparent; border-color: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; font-size: .9rem; }
 .account input:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
 .account [role="status"]:empty { display: none; }
 @media (max-width: 540px) {
-  .account form label, .account form .auth-primary { width: 100%; }
+  .account summary { gap: 10px; }
+  .account-heading #accountCaption { font-size: .8rem; }
+  .account-icon { flex-basis: 36px; height: 40px; border-radius: 10px; }
+  .account-icon::before { top: 7px; }
+  .account-icon::after { bottom: 7px; }
+  .account-trigger { padding: 7px 10px; gap: 7px; white-space: nowrap; }
+  .account form { display: grid; }
+  .account form label { width: 100%; }
+  .account form .auth-actions { justify-content: space-between; }
+  .account form .auth-primary { flex: 1; }
 }
 .account input, .cost-editor input, .cost-editor select {
   display: block; border: 1px solid var(--line); border-radius: 8px; color: var(--ink);
@@ -168,6 +231,8 @@ footer a { color: inherit; padding-block: 8px; }
 .sales th:first-child { z-index: 3; }
 @media (max-width: 480px) {
   .sales th:first-child, .sales td:first-child { width: 108px; min-width: 108px; }
-  .bar:has(.tool-nav) { flex-wrap: wrap; padding-block: 8px; }
+  .bar, .tool-nav { gap: 8px; }
+  .tool-link { font-size: .85rem; }
+  .tool-link span[aria-hidden] { display: none; }
   .sales .metrics { grid-template-columns: 1fr; }
 }
